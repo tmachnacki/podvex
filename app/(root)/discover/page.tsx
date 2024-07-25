@@ -53,7 +53,7 @@ export default function Discover({
               )}
             </PodcastGrid>
           ) : (
-            <EmptyState title="No results found" />
+            <EmptyState title="No results found" search />
           )
         ) : (
           <PodcastGridLoader />

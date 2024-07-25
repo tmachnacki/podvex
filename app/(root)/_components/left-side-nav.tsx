@@ -1,14 +1,14 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { SignedIn, SignedOut, useClerk } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignOutButton, useAuth } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 import { Button } from "../../../components/ui/button";
 import { useAudio } from "@/providers/audio-provider";
-import { House, Compass, Mic, ArrowLeft, LogOut } from "lucide-react";
+import { House, Compass, Mic, ArrowLeft, LogOut, Library } from "lucide-react";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 
 export const sideNavItems = [
@@ -27,13 +27,21 @@ export const sideNavItems = [
     route: "/create",
     label: "Create Podcast",
   },
+  // {
+  //   icon: <Library className="h-6 w-6" />,
+  //   route: "/library",
+  //   label: "Your Library",
+  // },
 ];
 
 const LeftSideNav = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const { signOut } = useClerk();
   const { audio } = useAudio();
+  const { isSignedIn, userId: clerkId } = useAuth();
+
+  const isActive = (route: string) =>
+    pathname === route || pathname.startsWith(`${route}/`);
 
   return (
     <section
@@ -60,16 +68,13 @@ const LeftSideNav = () => {
         </Link>
 
         {sideNavItems.map(({ route, label, icon }) => {
-          const isActive =
-            pathname === route || pathname.startsWith(`${route}/`);
-
           return (
             <Link
               href={route}
               key={label}
               className={cn(
                 "relative flex items-center justify-center gap-3 rounded-lg px-4 py-3 max-lg:px-4 lg:justify-start",
-                isActive
+                isActive(route)
                   ? "bg-gradient-to-r from-primary to-primary/0 text-white"
                   : "hover:bg-accent dark:hover:bg-background",
               )}
@@ -79,27 +84,40 @@ const LeftSideNav = () => {
             </Link>
           );
         })}
+        <Button
+          onClick={() => {
+            isSignedIn ? router.push(`/profile/${clerkId}/library`) : null;
+          }}
+          disabled={!isSignedIn}
+          className={cn(
+            "relative flex h-auto items-center justify-center gap-3 rounded-lg bg-transparent px-4 py-3 text-base max-lg:px-4 lg:justify-start",
+            isActive(`/profile/${clerkId}`)
+              ? "bg-gradient-to-r from-primary to-primary/0 text-white"
+              : "hover:bg-accent dark:hover:bg-background",
+          )}
+        >
+          <Library className="h-6 w-6" />
+          <p>Your Library</p>
+        </Button>
       </nav>
       <div className="flex w-full flex-col items-center justify-center gap-2 pb-14 max-lg:px-4 lg:px-8">
         <div className="flex w-full items-center space-x-2 text-sm">
           <ThemeSwitcher />
           <span>{"Change Theme"}</span>
         </div>
+        <SignedIn>
+          <SignOutButton redirectUrl="/">
+            <Button className="w-full" variant={"outline"}>
+              <LogOut className="mr-2 h-4 w-4 rotate-180" />
+              Log Out
+            </Button>
+          </SignOutButton>
+        </SignedIn>
         <SignedOut>
           <Button asChild className="w-full">
             <Link href="/sign-in">Sign in</Link>
           </Button>
         </SignedOut>
-        <SignedIn>
-          <Button
-            className="w-full"
-            onClick={() => signOut(() => router.push("/"))}
-            variant={"outline"}
-          >
-            <LogOut className="mr-2 h-4 w-4 rotate-180" />
-            Log Out
-          </Button>
-        </SignedIn>
       </div>
     </section>
   );

@@ -102,12 +102,29 @@ export const getPodcastById = query({
   },
 });
 
-// podcsasts by views
+// podcasts by views
 export const getTrendingPodcasts = query({
   handler: async (ctx) => {
     const podcast = await ctx.db.query("podcasts").collect();
 
     return podcast.sort((a, b) => b.views - a.views).slice(0, 8);
+  },
+});
+
+// podcasts in array of saved podcast ids
+export const getSavedPodcasts = query({
+  args: {
+    clerkId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("clerkId"), args.clerkId))
+      .unique();
+
+    if (!user) throw new ConvexError("User not found");
+
+    return Promise.all(user.savedPodcasts.map((pId) => ctx.db.get(pId)));
   },
 });
 

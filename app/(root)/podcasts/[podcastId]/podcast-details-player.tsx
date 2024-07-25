@@ -1,5 +1,5 @@
 "use client";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -10,10 +10,16 @@ import { useAudio } from "@/providers/audio-provider";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/loading-spinner";
-import { Play } from "lucide-react";
+import { BookmarkMinus, BookmarkPlus, Play } from "lucide-react";
 import Link from "next/link";
 
 import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export interface PodcastDetailPlayerProps {
   audioUrl: string;
@@ -48,6 +54,17 @@ export const PodcastDetailPlayer = ({
 }: PodcastDetailPlayerProps) => {
   const { setAudio } = useAudio();
 
+  const userHasSaved = useQuery(api.users.getUserById, {
+    clerkId: authorId,
+  })?.savedPodcasts?.includes(podcastId);
+  const [optimisticSaved, setOptimisticSaved] = useState<boolean | undefined>(
+    userHasSaved,
+  );
+  const [isSavePending, setIsSavePending] = useState(false);
+
+  const savePodcast = useMutation(api.users.savePodast);
+  const unsavePodcast = useMutation(api.users.unsavePodast);
+
   const handlePlay = () => {
     setAudio({
       title: podcastTitle,
@@ -58,9 +75,31 @@ export const PodcastDetailPlayer = ({
     });
   };
 
-  const handleFavorite = () => {};
+  const handleSavePodcast = async () => {
+    try {
+      setIsSavePending(true);
+      await savePodcast({ clerkId: authorId, podcastId });
+      setIsSavePending(false);
+      toast.success("Podcast added to your library");
+    } catch (error) {
+      setIsSavePending(false);
+      toast.error("Error adding podcast to your library");
+    }
+  };
 
-  const timestamp = new Date(creationTime).toLocaleDateString();
+  const handleUnsavePodcast = async () => {
+    try {
+      setIsSavePending(true);
+      await unsavePodcast({ clerkId: authorId, podcastId });
+      setIsSavePending(false);
+      toast("Podcast removed from your library");
+    } catch (error) {
+      setIsSavePending(false);
+      toast.error("Error removing podcast from your library");
+    }
+  };
+
+  const timestamp = new Date(creationTime).toDateString();
 
   if (!imageUrl || !authorImageUrl) return <LoadingSpinner className="" />;
 
@@ -83,7 +122,7 @@ export const PodcastDetailPlayer = ({
             className="absolute inset-0 z-10 aspect-square rounded-xl opacity-50 blur-2xl"
           />
         </div>
-        <div className="flex w-full flex-grow flex-col gap-12 max-md:items-center">
+        <div className="flex w-full flex-col gap-12 max-md:items-center">
           <article className="flex flex-col gap-3">
             <div className="flex">
               <h1 className="mr-2 text-3xl font-bold">{podcastTitle}</h1>
@@ -110,13 +149,43 @@ export const PodcastDetailPlayer = ({
             </div> */}
           </article>
 
-          <Button
-            onClick={handlePlay}
-            className="w-full max-w-56 shadow-xl shadow-primary/30 transition-transform hover:scale-[102%] md:hover:scale-[103%]"
-          >
-            <Play className="mr-2 h-4 w-4" />
-            Play Podcast
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handlePlay}
+              className="w-fit shadow-xl shadow-primary/30 transition-transform hover:scale-[102%] md:hover:scale-[103%]"
+            >
+              <Play className="mr-2 h-4 w-4" />
+              Play Podcast
+            </Button>
+
+            {userHasSaved !== undefined && (
+              <TooltipProvider delayDuration={500}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      disabled={isSavePending}
+                      variant={"secondary"}
+                      size={"icon"}
+                      onClick={
+                        userHasSaved ? handleUnsavePodcast : handleSavePodcast
+                      }
+                    >
+                      {isSavePending ? (
+                        <LoadingSpinner className="h-4 w-4 text-secondary-foreground" />
+                      ) : userHasSaved ? (
+                        <BookmarkMinus className="h-4 w-4" />
+                      ) : (
+                        <BookmarkPlus className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {userHasSaved ? "Remove from library" : "Add to library"}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
         </div>
       </div>
     </div>

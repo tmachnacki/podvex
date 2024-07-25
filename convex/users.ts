@@ -1,6 +1,6 @@
 import { ConvexError, v } from "convex/values";
 
-import { internalMutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 
 export const getUserById = query({
   args: { clerkId: v.string() },
@@ -116,5 +116,51 @@ export const deleteUser = internalMutation({
     }
 
     await ctx.db.delete(user._id);
+  },
+});
+
+export const savePodast = mutation({
+  args: { podcastId: v.id("podcasts"), clerkId: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new ConvexError("Unauthorized");
+
+    const user = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("clerkId"), args.clerkId))
+      .unique();
+
+    if (!user) {
+      throw new ConvexError("User not found");
+    }
+
+    await ctx.db.patch(user._id, {
+      savedPodcasts: [...user.savedPodcasts!, args.podcastId],
+    });
+  },
+});
+
+export const unsavePodast = mutation({
+  args: { podcastId: v.id("podcasts"), clerkId: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new ConvexError("Unauthorized");
+
+    const user = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("clerkId"), args.clerkId))
+      .unique();
+
+    if (!user) {
+      throw new ConvexError("User not found");
+    }
+
+    const updatedSavedPodcasts = user.savedPodcasts.filter(
+      (pId) => args.podcastId !== pId,
+    );
+
+    await ctx.db.patch(user._id, {
+      savedPodcasts: updatedSavedPodcasts,
+    });
   },
 });
