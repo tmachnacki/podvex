@@ -7,11 +7,16 @@ import { PodcastGrid } from "@/components/podcast-grid";
 import { PodcastGridLoader } from "@/components/podcast-grid-skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { useUser } from "@clerk/nextjs";
+import { useEffect } from "react";
 
 export default function Library({ params }: { params: { profileId: string } }) {
   const savedPodcastsData = useQuery(api.podcasts.getSavedPodcasts, {
     clerkId: params.profileId,
   });
+
+  useEffect(() => {
+    console.log(savedPodcastsData);
+  }, [savedPodcastsData]);
 
   return (
     <div className="flex flex-col gap-12">

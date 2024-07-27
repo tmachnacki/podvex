@@ -73,7 +73,7 @@ export const ProfileCard = ({
           <h1 className="text-3xl font-bold leading-none">{userFirstName}</h1>
           <figure className="flex translate-y-0.5 items-center gap-2 pt-4">
             <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-cyan-500">
-              <Check className="h-2 w-2 text-white" />
+              <Check className="h-2 w-2 text-background" />
             </span>
             <h2 className="text-sm text-muted-foreground">Verified Creator</h2>
           </figure>

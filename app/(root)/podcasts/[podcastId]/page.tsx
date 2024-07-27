@@ -102,7 +102,7 @@ export default function PodcastDetails({
     }
   };
 
-  if (!similarPodcasts || !podcast)
+  if (!similarPodcasts || !podcast || !user)
     return (
       <div className="mt-12 flex w-full items-center justify-center">
         <LoadingSpinner className="h-6 w-6" />
@@ -110,12 +110,12 @@ export default function PodcastDetails({
     );
 
   return (
-    <section className="flex w-full flex-col space-y-12">
-      <div className="flex items-center justify-between pt-12">
-        <h1 className="text-lg font-semibold">Podcast Details</h1>
+    <section className="flex w-full flex-col space-y-12 pt-12">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold">Podcast Details</h1>
         <div className="flex items-center gap-4">
           <figure className="flex gap-2">
-            <Headphones className="h-6 w-6" />
+            <Headphones className="h-5 w-5" />
             <h2 className="font-semibold">{podcast?.views}</h2>
           </figure>
           <Dialog>
@@ -138,7 +138,7 @@ export default function PodcastDetails({
                   <>
                     <DropdownMenuSeparator />
                     <DialogTrigger asChild>
-                      <DropdownMenuItem className="text-destructive-foreground focus:bg-destructive/50">
+                      <DropdownMenuItem className="">
                         <Trash2 className="mr-2 h-4 w-4" />
                         Delete
                       </DropdownMenuItem>
@@ -179,6 +179,7 @@ export default function PodcastDetails({
         isOwner={isOwner}
         podcastId={podcast._id}
         creationTime={podcast._creationTime}
+        userId={user?.id}
         {...podcast}
       />
 
@@ -222,7 +223,7 @@ export default function PodcastDetails({
       <Separator orientation="horizontal" />
 
       <section className="mt-8 flex flex-col gap-6">
-        <h1 className="font-semibold">Similar Podcasts</h1>
+        <h1 className="font-semibold">You May Also Like</h1>
 
         {similarPodcasts && similarPodcasts.length > 0 ? (
           <div className="group/podcasts grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">

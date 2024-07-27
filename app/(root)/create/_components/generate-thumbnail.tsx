@@ -1,3 +1,5 @@
+"use client";
+
 import { useRef, useState, Dispatch, SetStateAction } from "react";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "../../../../components/ui/button";
@@ -189,7 +191,7 @@ export const GenerateThumbnail = ({
             }}
           /> */}
         </TabsContent>
-        <TabsContent value="Generate" className="m-0 space-y-4 p-0">
+        <TabsContent value="Generate" className="m-0 space-y-6 p-0">
           <div className="space-y-2">
             <Label className="">AI Thumbnail Prompt</Label>
             <Textarea

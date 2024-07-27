@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { BookmarkMinus, BookmarkPlus, Play } from "lucide-react";
 import Link from "next/link";
+import { useUpdateViews } from "@/lib/use-update-views";
 
 import { Separator } from "@/components/ui/separator";
 import {
@@ -35,6 +36,7 @@ export interface PodcastDetailPlayerProps {
   views: number;
   audioDuration: number;
   creationTime: number;
+  userId: string;
 }
 
 export const PodcastDetailPlayer = ({
@@ -51,11 +53,12 @@ export const PodcastDetailPlayer = ({
   views,
   creationTime,
   audioDuration,
+  userId,
 }: PodcastDetailPlayerProps) => {
   const { setAudio } = useAudio();
 
   const userHasSaved = useQuery(api.users.getUserById, {
-    clerkId: authorId,
+    clerkId: userId,
   })?.savedPodcasts?.includes(podcastId);
   const [optimisticSaved, setOptimisticSaved] = useState<boolean | undefined>(
     userHasSaved,
@@ -64,6 +67,9 @@ export const PodcastDetailPlayer = ({
 
   const savePodcast = useMutation(api.users.savePodast);
   const unsavePodcast = useMutation(api.users.unsavePodast);
+  const [canIncreaseViews, setCanIncreaseViews] = useState(true);
+
+  const { updateViews } = useUpdateViews();
 
   const handlePlay = () => {
     setAudio({
@@ -73,12 +79,17 @@ export const PodcastDetailPlayer = ({
       author,
       podcastId,
     });
+
+    if (canIncreaseViews) {
+      updateViews({ podcastId });
+      setCanIncreaseViews(false);
+    }
   };
 
   const handleSavePodcast = async () => {
     try {
       setIsSavePending(true);
-      await savePodcast({ clerkId: authorId, podcastId });
+      await savePodcast({ clerkId: userId, podcastId });
       setIsSavePending(false);
       toast.success("Podcast added to your library");
     } catch (error) {
@@ -90,7 +101,7 @@ export const PodcastDetailPlayer = ({
   const handleUnsavePodcast = async () => {
     try {
       setIsSavePending(true);
-      await unsavePodcast({ clerkId: authorId, podcastId });
+      await unsavePodcast({ clerkId: userId, podcastId });
       setIsSavePending(false);
       toast("Podcast removed from your library");
     } catch (error) {
@@ -142,11 +153,11 @@ export const PodcastDetailPlayer = ({
                 {author}
               </h2>
             </Link>
-            {/* <div className="text-light flex items-center space-x-2 text-sm text-muted-foreground/60">
-              <p>{audioDuration}</p>
-              <Separator orientation="vertical" />
+            <div className="flex items-center space-x-2 text-sm text-muted-foreground/70">
+              {/* <p>{audioDuration}</p>
+              <Separator orientation="vertical" /> */}
               <p>{timestamp}</p>
-            </div> */}
+            </div>
           </article>
 
           <div className="flex items-center gap-2">

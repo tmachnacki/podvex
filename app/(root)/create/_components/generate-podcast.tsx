@@ -1,4 +1,6 @@
-import React, { useRef, useState } from "react";
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
 import { Id } from "@/convex/_generated/dataModel";
 import { Label } from "../../../../components/ui/label";
 import { Textarea } from "../../../../components/ui/textarea";
@@ -62,7 +64,9 @@ export const GeneratePodcast = ({
   const [isAudioUploading, setIsAudioUploading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const audioRef = useRef<HTMLInputElement>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const voiceRef = useRef<HTMLAudioElement>(null);
 
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
   const { startUpload } = useUploadFiles(generateUploadUrl);
@@ -138,6 +142,12 @@ export const GeneratePodcast = ({
     }
   };
 
+  useEffect(() => {
+    if (!voiceRef.current) return;
+
+    voiceRef.current.play();
+  }, [voiceType, voiceRef]);
+
   // const handleGeneratePodcast = async () => {
   //   setIsGenerating(true);
   //   setAudio("");
@@ -194,12 +204,12 @@ export const GeneratePodcast = ({
         <TabsContent value="Upload" className="m-0 p-0">
           <div
             className="flex h-40 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-[2px] border-dashed border-input transition hover:border-muted-foreground"
-            onClick={() => audioRef?.current?.click()}
+            onClick={() => audioInputRef?.current?.click()}
           >
             <Input
               type="file"
               className="hidden"
-              ref={audioRef}
+              ref={audioInputRef}
               onChange={(e) => uploadAudio(e)}
             />
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -232,10 +242,10 @@ export const GeneratePodcast = ({
             }}
           /> */}
         </TabsContent>
-        <TabsContent value="Generate" className="m-0 space-y-4 p-0">
+        <TabsContent value="Generate" className="m-0 space-y-6 p-0">
           <div className="space-y-2">
             <Label>AI Voice</Label>
-            <Select onValueChange={setVoiceType}>
+            <Select onValueChange={setVoiceType} value={voiceType ?? undefined}>
               <SelectTrigger
                 className={`w-full max-w-[200px] ${voiceType === null ? "text-muted-foreground" : "text-foreground"}`}
               >
@@ -253,16 +263,20 @@ export const GeneratePodcast = ({
                 ))}
               </SelectContent>
               {voiceType && (
-                <audio src={`/${voiceType}.mp3`} autoPlay className="hidden" />
+                <audio
+                  src={`/${voiceType}.mp3`}
+                  ref={voiceRef}
+                  className="hidden"
+                />
               )}
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label className="">AI Thumbnail Prompt</Label>
+            <Label className="">AI Audio Prompt</Label>
             <Textarea
               className=""
-              placeholder="Provide text to generate thumbnail"
+              placeholder="Provide text to generate audio"
               rows={5}
               value={voicePrompt}
               onChange={(e) => setVoicePrompt(e.target.value)}

@@ -19,7 +19,7 @@ export const EmptyState = ({
   return (
     <section className="flex size-full flex-col items-center justify-center gap-3">
       <div className="relative flex w-full max-w-xs flex-col items-center justify-center space-y-4">
-        <Shuffle className="text-muted" />
+        <Shuffle className="text-muted-foreground/60" />
         <h1 className="text-center">{title}</h1>
         {search && (
           <p className="text-center text-sm text-muted-foreground">

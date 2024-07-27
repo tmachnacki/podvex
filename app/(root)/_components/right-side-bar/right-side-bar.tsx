@@ -4,15 +4,16 @@ import { SignedIn, UserButton, useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-// import Header from "./Header";
-// import Carousel from "./Carousel";
+import { LikeYouCarousel } from "./carousel";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
-// import LoaderSpinner from "./LoaderSpinner";
 import { useAudio } from "@/providers/audio-provider";
 import { cn } from "@/lib/utils";
 import { ChevronRight } from "lucide-react";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Id } from "@/convex/_generated/dataModel";
+import { UserNav } from "@/components/user-nav";
 
 const RightSidebar = () => {
   const { user } = useUser();
@@ -22,64 +23,84 @@ const RightSidebar = () => {
   const { audio } = useAudio();
 
   return (
-    <section
+    <ScrollArea
       className={cn(
-        "sticky right-0 top-0 flex h-[calc(100vh-5px)] w-[310px] flex-col overflow-y-hidden border-l border-border bg-neutral-50 px-[30px] pt-8 dark:bg-neutral-900 max-xl:hidden",
-        {
-          "h-[calc(100vh-124px)]": audio?.audioUrl,
-        },
+        "sticky right-0 top-0 h-screen w-[320px] border-l-[1px] border-border bg-neutral-50 dark:bg-neutral-900 max-xl:hidden",
+        audio?.audioUrl ? "h-[calc(100vh-124px)]" : "h-screen",
       )}
     >
-      <SignedIn>
-        <div className="flex gap-3">
-          <UserButton />
-          <Link
-            href={`/profile/${user?.id}`}
-            className="flex w-full items-center justify-between"
-          >
-            <h1 className="text-16 text-white-1 truncate font-semibold">
-              {user?.firstName} {user?.lastName}
-            </h1>
-            <ChevronRight className="h-6 w-6 text-primary" />
-          </Link>
-        </div>
-      </SignedIn>
-      <section>
-        {/* <Header headerTitle="Fans Like You" /> */}
-        {/* <Carousel fansLikeDetail={topPodcasters!}/> */}
-      </section>
-      <section className="flex flex-col gap-8 pt-12">
-        {/* <Header headerTitle="Top Podcastrs" /> */}
-        <div className="flex flex-col gap-6">
-          {topPodcasters?.slice(0, 3).map((podcaster) => (
-            <div
-              key={podcaster._id}
-              className="flex cursor-pointer justify-between"
-              onClick={() => router.push(`/profile/${podcaster.clerkId}`)}
+      <section
+        className={cn(
+          "flex w-full flex-col px-8 py-12 text-sm",
+          audio?.audioUrl ? "h-[calc(100vh-124px)]" : "h-screen",
+        )}
+      >
+        {/* <SignedIn>
+          <div className="flex gap-3 pb-12">
+            <UserButton />
+            <Link
+              href={`/profile/${user?.id}`}
+              className="flex w-full items-center justify-between"
             >
-              <figure className="flex items-center gap-2">
-                <Image
-                  src={podcaster.imageUrl}
-                  alt={podcaster.name}
-                  width={44}
-                  height={44}
-                  className="aspect-square rounded-lg"
-                />
-                <h2 className="text-14 text-white-1 font-semibold">
-                  {podcaster.name}
-                </h2>
-              </figure>
-              <div className="flex items-center">
-                <p className="text-12 text-white-1 font-normal">
-                  {podcaster.totalPodcasts} podcasts
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+              <h1 className="truncate font-semibold">
+                {user?.firstName} {user?.lastName}
+              </h1>
+              <ChevronRight className="h-5 w-5 text-primary" />
+            </Link>
+          </div>
+        </SignedIn> */}
+        <UserNav isMobileNav={false} />
+        <section className="space-y-2 pb-12">
+          <header className="flex items-center justify-between">
+            <h4 className="text-base font-semibold">Fans Like You</h4>
+          </header>
+
+          <LikeYouCarousel topCreators={topPodcasters!} />
+        </section>
+        <section className="flex flex-col space-y-2 pt-12">
+          <header className="flex items-center justify-between">
+            <h4 className="text-base font-semibold">Top creators</h4>
+            <Link
+              href={"/discover"}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              See All
+            </Link>
+          </header>
+          <ul className="">
+            {topPodcasters?.slice(0, 4).map((podcaster) => (
+              <li
+                key={podcaster._id}
+                className="border-b border-border py-3 last:border-none"
+                // onClick={() => router.push(`/profile/${podcaster.clerkId}`)}
+              >
+                <Link
+                  href={`/profile/${podcaster.clerkId}`}
+                  // key={podcaster._id}
+                  className="flex cursor-pointer justify-between text-muted-foreground hover:text-foreground"
+                  // onClick={() => router.push(`/profile/${podcaster.clerkId}`)}
+                >
+                  <figure className="flex items-center gap-2">
+                    <Image
+                      src={podcaster.imageUrl}
+                      alt={podcaster.name}
+                      width={36}
+                      height={36}
+                      className="aspect-square rounded-md"
+                    />
+                    <h2 className="">{podcaster.name}</h2>
+                  </figure>
+                  <div className="flex items-center">
+                    <p className="">{podcaster.totalPodcasts} podcasts</p>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       </section>
-      Right Side Bar
-    </section>
+      <ScrollBar />
+    </ScrollArea>
   );
 };
 

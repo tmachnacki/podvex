@@ -23,7 +23,18 @@ export default function ProfilePage({
     authorId: params.profileId,
   });
 
-  if (!user || !podcastsData) return <LoadingSpinner />;
+  if (!user || !podcastsData) {
+    return (
+      <section className="flex flex-col">
+        <h1 className="pb-8 pt-12 text-xl font-bold max-md:text-center">
+          Podvex Profile
+        </h1>
+        <div className="flex items-center justify-center">
+          <LoadingSpinner className="h-6 w-6" />
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="flex flex-col">

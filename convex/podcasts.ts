@@ -124,7 +124,9 @@ export const getSavedPodcasts = query({
 
     if (!user) throw new ConvexError("User not found");
 
-    return Promise.all(user.savedPodcasts.map((pId) => ctx.db.get(pId)));
+    return Promise.all(
+      user.savedPodcasts.map(async (pId) => await ctx.db.get(pId)),
+    );
   },
 });
 

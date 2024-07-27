@@ -114,9 +114,12 @@ const PodcastPlayer = () => {
   return (
     <TooltipProvider delayDuration={500}>
       <div
-        className={cn("sticky bottom-0 left-0 flex size-full flex-col", {
-          hidden: !audio?.audioUrl || audio?.audioUrl === "",
-        })}
+        className={cn(
+          "sticky bottom-0 left-0 flex w-full flex-col shadow-[0_20px_25px_10px_rgba(0,0,0,0.2)]",
+          {
+            hidden: !audio?.audioUrl || audio?.audioUrl === "",
+          },
+        )}
       >
         <Progress
           value={(currentTime / duration) * 100}
@@ -134,11 +137,11 @@ const PodcastPlayer = () => {
           <div className="flex items-center gap-4 max-md:hidden">
             <Link href={`/podcast/${audio?.podcastId}`}>
               <Image
-                src={audio?.imageUrl! || "/log.svg"}
-                width={48}
-                height={48}
+                src={audio?.imageUrl! || "/logo.svg"}
+                width={56}
+                height={56}
                 alt="logo"
-                className="aspect-square rounded-md"
+                className="aspect-square rounded-md object-cover object-center"
               />
             </Link>
             <div className="flex w-[160px] flex-col">
