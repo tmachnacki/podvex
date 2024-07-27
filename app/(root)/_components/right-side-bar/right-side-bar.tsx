@@ -49,7 +49,7 @@ const RightSidebar = () => {
             </Link>
           </div>
         </SignedIn> */}
-        <UserNav isMobileNav={false} />
+        {/* <UserNav isMobileNav={false} /> */}
         <section className="space-y-2 pb-12">
           <header className="flex items-center justify-between">
             <h4 className="text-base font-semibold">For Listeners Like You</h4>
