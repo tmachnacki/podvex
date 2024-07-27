@@ -28,5 +28,6 @@ export default defineSchema({
     clerkId: v.string(),
     name: v.string(),
     savedPodcasts: v.array(v.id("podcasts")),
+    listeners: v.array(v.string()),
   }),
 });

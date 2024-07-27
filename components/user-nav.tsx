@@ -20,12 +20,16 @@ import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
 import { useRouter } from "next/navigation";
 
-export const UserNav = ({ isMobileNav }: { isMobileNav: boolean }) => {
+export const UserNav = ({
+  triggerClassName,
+}: {
+  triggerClassName?: boolean;
+}) => {
   const { signOut } = useAuth();
   const { user, isLoaded, isSignedIn } = useUser();
   const router = useRouter();
 
-  if (!isLoaded) {
+  if (!isLoaded || !isSignedIn) {
     return (
       <div className="flex h-10 items-center gap-2">
         <Skeleton className="h-8 w-8 rounded-full" />

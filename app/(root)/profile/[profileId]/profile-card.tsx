@@ -6,7 +6,13 @@ import { useAudio } from "@/providers/audio-provider";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Doc } from "@/convex/_generated/dataModel";
-import { Check, CheckCheck, Headphones, Shuffle } from "lucide-react";
+import {
+  AudioLines,
+  Check,
+  CheckCheck,
+  Headphones,
+  Shuffle,
+} from "lucide-react";
 
 export interface ProfilePodcastProps {
   podcasts: Doc<"podcasts">[];
@@ -14,13 +20,17 @@ export interface ProfilePodcastProps {
 }
 
 export interface ProfileCardProps {
-  podcastData: ProfilePodcastProps;
+  podcasts: Doc<"podcasts">[];
+  totalViews: number;
+  listeners: number;
   imageUrl: string;
   userFirstName: string;
 }
 
 export const ProfileCard = ({
-  podcastData,
+  podcasts,
+  totalViews,
+  listeners,
   imageUrl,
   userFirstName,
 }: ProfileCardProps) => {
@@ -31,9 +41,9 @@ export const ProfileCard = ({
   );
 
   const playRandomPodcast = () => {
-    const randomIndex = Math.floor(Math.random() * podcastData.podcasts.length);
+    const randomIndex = Math.floor(Math.random() * podcasts.length);
 
-    setRandomPodcast(podcastData.podcasts[randomIndex]);
+    setRandomPodcast(podcasts[randomIndex]);
   };
 
   useEffect(() => {
@@ -78,17 +88,27 @@ export const ProfileCard = ({
             <h2 className="text-sm text-muted-foreground">Verified Creator</h2>
           </figure>
 
-          <figure className="flex items-center gap-3 pb-12 pt-4">
+          <figure className="flex items-center gap-3 pt-4">
             <Headphones className="h-5 w-5 text-muted-foreground" />
-            <h2 className="font-semibold">
-              {podcastData?.listeners} &nbsp;
+            <p className="font-semibold">
+              {listeners} &nbsp;
               <span className="text-sm font-normal text-muted-foreground">
-                monthly plays
+                listeners
               </span>
-            </h2>
+            </p>
           </figure>
 
-          {podcastData?.podcasts.length > 0 && (
+          <figure className="flex items-center gap-3 pb-12 pt-4">
+            <AudioLines className="h-5 w-5 text-muted-foreground" />
+            <p className="font-semibold">
+              {totalViews} &nbsp;
+              <span className="text-sm font-normal text-muted-foreground">
+                plays
+              </span>
+            </p>
+          </figure>
+
+          {podcasts.length > 0 && (
             <Button
               onClick={playRandomPodcast}
               className="shadow-xl shadow-primary/30 transition-transform hover:scale-[102%] md:hover:scale-[103%]"

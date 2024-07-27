@@ -52,7 +52,7 @@ const RightSidebar = () => {
         <UserNav isMobileNav={false} />
         <section className="space-y-2 pb-12">
           <header className="flex items-center justify-between">
-            <h4 className="text-base font-semibold">Fans Like You</h4>
+            <h4 className="text-base font-semibold">For Listeners Like You</h4>
           </header>
 
           <LikeYouCarousel topCreators={topPodcasters!} />

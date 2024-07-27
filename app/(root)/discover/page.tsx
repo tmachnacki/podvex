@@ -9,6 +9,7 @@ import { Search } from "./search";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { PodcastGrid } from "@/components/podcast-grid";
 import { PodcastGridLoader } from "@/components/podcast-grid-skeleton";
+import { useAuth } from "@clerk/nextjs";
 
 export default function Discover({
   searchParams: { search },
@@ -18,6 +19,7 @@ export default function Discover({
   const podcastsData = useQuery(api.podcasts.getPodcastBySearch, {
     search: search || "",
   });
+  const { userId } = useAuth();
 
   return (
     <div className="flex flex-col gap-12">
@@ -28,7 +30,7 @@ export default function Discover({
           {search && <span className="">{search}</span>}
         </h1>
 
-        {podcastsData ? (
+        {podcastsData && userId ? (
           podcastsData.length > 0 ? (
             <PodcastGrid>
               {podcastsData?.map(
@@ -39,6 +41,7 @@ export default function Discover({
                   imageUrl,
                   audioUrl,
                   author,
+                  authorId,
                 }) => (
                   <PodcastCard
                     key={_id}
@@ -48,6 +51,8 @@ export default function Discover({
                     podcastId={_id}
                     audioUrl={audioUrl}
                     author={author}
+                    authorId={authorId}
+                    currentUserId={userId}
                   />
                 ),
               )}

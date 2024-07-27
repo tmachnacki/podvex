@@ -8,7 +8,8 @@ import { useMutation } from "convex/react";
 import { toast } from "sonner";
 import { Play } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useUpdateViews } from "@/lib/use-update-views";
+import { useUpdateViews } from "@/hooks/use-update-views";
+import { useUpdateListeners } from "@/hooks/use-update-listeners";
 
 export interface PodcastCardProps {
   imageUrl: string;
@@ -17,6 +18,8 @@ export interface PodcastCardProps {
   podcastId: Id<"podcasts">;
   audioUrl: string;
   author: string;
+  currentUserId: string;
+  authorId: string;
 }
 
 export const PodcastCard = ({
@@ -26,11 +29,14 @@ export const PodcastCard = ({
   podcastId,
   audioUrl,
   author,
+  currentUserId,
+  authorId,
 }: PodcastCardProps) => {
   const router = useRouter();
 
   const { setAudio, audio } = useAudio();
   const { updateViews } = useUpdateViews();
+  const { updateListeners } = useUpdateListeners();
 
   const handlePlay = () => {
     setAudio({
@@ -41,6 +47,7 @@ export const PodcastCard = ({
       podcastId,
     });
     updateViews({ podcastId });
+    updateListeners({ listenerId: currentUserId, authorId });
   };
 
   return (

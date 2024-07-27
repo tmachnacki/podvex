@@ -8,6 +8,7 @@ import { LoadingSpinner } from "@/components/loading-spinner";
 import { PodcastCard } from "@/components/podcast-card";
 import { ProfileCard } from "./profile-card";
 import { PodcastGrid } from "@/components/podcast-grid";
+import { useAuth } from "@clerk/nextjs";
 
 export default function ProfilePage({
   params,
@@ -16,14 +17,15 @@ export default function ProfilePage({
     profileId: string;
   };
 }) {
-  const user = useQuery(api.users.getUserById, {
+  const authorUser = useQuery(api.users.getUserById, {
     clerkId: params.profileId,
   });
   const podcastsData = useQuery(api.podcasts.getPodcastByAuthorId, {
     authorId: params.profileId,
   });
+  const { userId } = useAuth();
 
-  if (!user || !podcastsData) {
+  if (!authorUser || !podcastsData || !userId) {
     return (
       <section className="flex flex-col">
         <h1 className="pb-8 pt-12 text-xl font-bold max-md:text-center">
@@ -43,18 +45,20 @@ export default function ProfilePage({
       </h1>
       <div className="flex flex-col gap-6 max-md:items-center md:flex-row">
         <ProfileCard
-          podcastData={podcastsData!}
-          imageUrl={user?.imageUrl!}
-          userFirstName={user?.name!}
+          listeners={authorUser.listeners.length}
+          totalViews={podcastsData.totalViews}
+          podcasts={podcastsData?.podcasts!}
+          imageUrl={authorUser?.imageUrl!}
+          userFirstName={authorUser?.name!}
         />
       </div>
       <section className="flex flex-col pt-12">
         <h1 className="pb-8 text-lg font-bold">
-          {`${user?.name}${user?.name.endsWith("s") ? "'" : "'s"} Podcasts`}
+          {`${authorUser?.name}${authorUser?.name.endsWith("s") ? "'" : "'s"} Podcasts`}
         </h1>
         {podcastsData && podcastsData.podcasts.length > 0 ? (
           <PodcastGrid>
-            {podcastsData?.podcasts
+            {podcastsData.podcasts
               ?.slice(0, 4)
               .map((podcast) => (
                 <PodcastCard
@@ -65,6 +69,8 @@ export default function ProfilePage({
                   podcastId={podcast._id}
                   audioUrl={podcast.audioUrl!}
                   author={podcast.author!}
+                  authorId={podcast.authorId!}
+                  currentUserId={userId}
                 />
               ))}
           </PodcastGrid>

@@ -63,6 +63,7 @@ export const createUser = internalMutation({
       imageUrl: args.imageUrl,
       name: args.name,
       savedPodcasts: [],
+      listeners: [],
     });
   },
 });
@@ -162,5 +163,31 @@ export const unsavePodast = mutation({
     await ctx.db.patch(user._id, {
       savedPodcasts: updatedSavedPodcasts,
     });
+  },
+});
+
+export const updateListeners = mutation({
+  args: {
+    listenerId: v.string(),
+    authorId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new ConvexError("Unauthorized");
+
+    const user = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("clerkId"), args.authorId))
+      .unique();
+
+    if (!user) {
+      throw new ConvexError("User not found");
+    }
+
+    if (!user.listeners.includes(args.listenerId)) {
+      await ctx.db.patch(user._id, {
+        listeners: [...user.listeners, args.listenerId],
+      });
+    }
   },
 });

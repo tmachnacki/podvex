@@ -1,7 +1,7 @@
 import { UserProfile } from "@clerk/nextjs";
 
 const UserProfilePage = () => (
-  <div className="flex items-center justify-center pt-12">
+  <div className="mx-auto flex w-full items-center justify-center pt-12">
     <UserProfile path="/profile/manage-account" />
   </div>
 );

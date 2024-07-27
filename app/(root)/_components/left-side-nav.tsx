@@ -7,6 +7,8 @@ import {
   SignOutButton,
   useAuth,
   useClerk,
+  UserButton,
+  useUser,
 } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,9 +16,19 @@ import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 import { Button } from "../../../components/ui/button";
 import { useAudio } from "@/providers/audio-provider";
-import { House, Compass, Mic, ArrowLeft, LogOut, Library } from "lucide-react";
+import {
+  House,
+  Compass,
+  Mic,
+  ArrowLeft,
+  LogOut,
+  Library,
+  User,
+} from "lucide-react";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { ScrollBar, ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const sideNavItems = [
   {
@@ -45,7 +57,8 @@ const LeftSideNav = () => {
   const pathname = usePathname();
   const router = useRouter();
   const { audio } = useAudio();
-  const { isSignedIn, userId: clerkId, signOut } = useAuth();
+  // const { userId: clerkId, signOut,  } = useAuth();
+  const { user, isLoaded, isSignedIn } = useUser();
 
   const isActive = (route: string) =>
     pathname === route || pathname.startsWith(`${route}/`);
@@ -97,10 +110,10 @@ const LeftSideNav = () => {
           })}
           {isSignedIn && (
             <Link
-              href={`/library/${clerkId}`}
+              href={`/library/${user?.id}`}
               className={cn(
                 "relative flex items-center justify-center gap-3 rounded-lg px-4 py-3 max-lg:px-4 lg:justify-start",
-                isActive(`/library/${clerkId}`)
+                isActive(`/library/${user?.id}`)
                   ? "bg-gradient-to-r from-primary to-primary/0 text-white"
                   : "hover:bg-accent dark:hover:bg-background",
               )}
@@ -115,7 +128,31 @@ const LeftSideNav = () => {
             <ThemeSwitcher />
             {/* <span>{"Change Theme"}</span> */}
           </div>
-          <SignedIn>
+
+          {isSignedIn && isLoaded ? (
+            <div className="relative w-full">
+              <div className="absolute left-0 top-1/2 inline-flex cursor-pointer items-center justify-start gap-2 transition">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.imageUrl!} alt={"user avatar"} />
+                  <AvatarFallback>
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                  </AvatarFallback>
+                </Avatar>
+
+                <span className="text-sm">{user?.fullName}</span>
+              </div>
+              <div className="absolute left-0 z-10 w-full opacity-50">
+                <UserButton showName userProfileMode="modal" />
+              </div>
+            </div>
+          ) : (
+            <div className="flex h-10 items-center gap-2">
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <Skeleton className="h-6 w-40 rounded-md" />
+            </div>
+          )}
+
+          {/* <SignedIn>
             <Button
               className="flex w-full items-center gap-2"
               variant={"outline"}
@@ -124,12 +161,12 @@ const LeftSideNav = () => {
               <LogOut className="h-4 w-4 rotate-180" />
               <span className="max-lg:hidden">Log Out</span>
             </Button>
-          </SignedIn>
-          <SignedOut>
+          </SignedIn> */}
+          {/* <SignedOut>
             <Button asChild className="w-full" variant={"primary_opaque"}>
               <Link href="/sign-in">Sign in</Link>
             </Button>
-          </SignedOut>
+          </SignedOut> */}
         </div>
       </section>
       <ScrollBar />

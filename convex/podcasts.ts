@@ -140,12 +140,12 @@ export const getPodcastByAuthorId = query({
       .filter((q) => q.eq(q.field("authorId"), args.authorId))
       .collect();
 
-    const totalListeners = podcasts.reduce(
+    const totalViews = podcasts.reduce(
       (sum, podcast) => sum + podcast.views,
       0,
     );
 
-    return { podcasts, listeners: totalListeners };
+    return { podcasts, totalViews };
   },
 });
 

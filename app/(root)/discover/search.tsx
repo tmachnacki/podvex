@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { usePathname, useRouter } from "next/navigation";
-import { useDebounce } from "@/lib/use-debounce";
+import { useDebounce } from "@/hooks/use-debounce";
 import { Search as SearchIcon } from "lucide-react";
 
 export const Search = () => {
