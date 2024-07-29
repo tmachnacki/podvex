@@ -51,7 +51,7 @@ export const UserNav = ({
 
   return (
     <div className="flex w-full flex-col justify-center gap-4 px-4 py-12 lg:justify-start lg:px-8">
-      <div className="relative flex w-full items-center px-4 py-3 hover:bg-background">
+      <div className="relative flex w-full items-center rounded px-4 py-3 hover:bg-background">
         <div className="relative flex cursor-pointer items-center space-x-3">
           <Settings className="h-5 w-5" />
           <span className="">Manage Account</span>
