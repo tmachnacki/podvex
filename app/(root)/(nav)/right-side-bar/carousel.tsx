@@ -1,8 +1,8 @@
+"use client";
 import { useRef } from "react";
 
 import Autoplay from "embla-carousel-autoplay";
 
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
   CarouselContent,
@@ -14,6 +14,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 
 export interface TopCreator {
   _id: Id<"users">;
@@ -59,16 +60,18 @@ export const LikeYouCarousel = ({
         {/* Carouesel Items */}
         {creatorSlides.slice(0, 5).map((creatorSlide) => (
           <CarouselItem key={creatorSlide._id} className="border-none">
-            <figure
+            <Link
               className="relative flex aspect-square h-fit w-full flex-none cursor-pointer flex-col justify-end overflow-hidden rounded-xl border-none"
-              onClick={() =>
-                router.push(`podcasts/${creatorSlide.podcast[0]?.podcastId}`)
-              }
+              // onClick={() =>
+              //   router.push(`/podcasts/${creatorSlide.podcast[0]?.podcastId}`)
+              // }
+              href={`/podcasts/${creatorSlide.podcast[0]?.podcastId}`}
             >
               <Image
                 src={creatorSlide.imageUrl}
                 alt={"creator profile image"}
                 fill
+                sizes="240"
                 className="absolute size-full rounded-xl border-none"
               />
               <div className="relative z-10 flex flex-col rounded-b-xl bg-black/60 p-4 backdrop-blur-sm">
@@ -77,7 +80,7 @@ export const LikeYouCarousel = ({
                 </h2>
                 <p className="text-sm text-neutral-400">{creatorSlide.name}</p>
               </div>
-            </figure>
+            </Link>
           </CarouselItem>
         ))}
       </CarouselContent>

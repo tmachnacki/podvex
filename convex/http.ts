@@ -5,6 +5,25 @@ import { Webhook } from "svix";
 import { internal } from "./_generated/api";
 import { httpAction } from "./_generated/server";
 
+const validateRequest = async (
+  req: Request,
+): Promise<WebhookEvent | undefined> => {
+  const webhookSecret = process.env.CLERK_WEBHOOK_SECRET!;
+  if (!webhookSecret) {
+    throw new Error("CLERK_WEBHOOK_SECRET is not defined");
+  }
+  const payloadString = await req.text();
+  const headerPayload = req.headers;
+  const svixHeaders = {
+    "svix-id": headerPayload.get("svix-id")!,
+    "svix-timestamp": headerPayload.get("svix-timestamp")!,
+    "svix-signature": headerPayload.get("svix-signature")!,
+  };
+  const wh = new Webhook(webhookSecret);
+  const event = wh.verify(payloadString, svixHeaders);
+  return event as unknown as WebhookEvent;
+};
+
 const handleClerkWebhook = httpAction(async (ctx, request) => {
   const event = await validateRequest(request);
   if (!event) {
@@ -45,23 +64,28 @@ http.route({
   handler: handleClerkWebhook,
 });
 
-const validateRequest = async (
-  req: Request,
-): Promise<WebhookEvent | undefined> => {
-  const webhookSecret = process.env.CLERK_WEBHOOK_SECRET!;
-  if (!webhookSecret) {
-    throw new Error("CLERK_WEBHOOK_SECRET is not defined");
-  }
-  const payloadString = await req.text();
-  const headerPayload = req.headers;
-  const svixHeaders = {
-    "svix-id": headerPayload.get("svix-id")!,
-    "svix-timestamp": headerPayload.get("svix-timestamp")!,
-    "svix-signature": headerPayload.get("svix-signature")!,
-  };
-  const wh = new Webhook(webhookSecret);
-  const event = wh.verify(payloadString, svixHeaders);
-  return event as unknown as WebhookEvent;
-};
+// stripe
+http.route({
+  path: "/stripe",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    const signature = request.headers.get("stripe-signature") as string;
+
+    const result = await ctx.runAction(internal.stripe.fulfill, {
+      payload: await request.text(),
+      signature,
+    });
+
+    if (result.success) {
+      return new Response(null, {
+        status: 200,
+      });
+    } else {
+      return new Response("Webhook Error", {
+        status: 400,
+      });
+    }
+  }),
+});
 
 export default http;

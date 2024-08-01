@@ -8,8 +8,7 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useUser } from "@clerk/nextjs";
 import { useMutation, useQuery } from "convex/react";
-import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Headphones,
   Sparkles,
@@ -24,7 +23,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -58,19 +56,6 @@ export default function PodcastDetails({
   });
 
   const isOwner = user?.id === podcast?.authorId;
-
-  // useEffect(() => {
-  //   const handleUpdateViews = async () => {
-  //     try {
-  //       await increaseViews({ podcastId: podcastId });
-  //     } catch (error) {
-  //       console.error(error);
-  //       toast.error("Error viewing podcast");
-  //     }
-  //   };
-
-  //   handleUpdateViews();
-  // }, [podcastId, increaseViews]);
 
   const handleDelete = async () => {
     if (!podcastId || !podcast) {
@@ -235,6 +220,7 @@ export default function PodcastDetails({
                 imageUrl,
                 audioUrl,
                 author,
+                authorId,
               }) => (
                 <PodcastCard
                   key={_id}
@@ -244,6 +230,8 @@ export default function PodcastDetails({
                   podcastId={_id}
                   audioUrl={audioUrl}
                   author={author}
+                  currentUserId={user?.id}
+                  authorId={authorId}
                 />
               ),
             )}

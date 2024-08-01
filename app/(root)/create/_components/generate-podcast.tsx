@@ -16,28 +16,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { CloudUpload } from "lucide-react";
 import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { playHtVoices } from "@/lib/playht-voices";
 
 export interface GeneratePodcastProps {
   audioMediaMethod: "Upload" | "Generate";
   setAudioMediaMethod: React.Dispatch<
     React.SetStateAction<"Upload" | "Generate">
   >;
-  voiceCategories: string[];
-  voiceType: string | null;
-  setVoiceType: React.Dispatch<React.SetStateAction<string | null>>;
+  voice: string | null;
+  setVoice: React.Dispatch<React.SetStateAction<string | null>>;
   setAudio: React.Dispatch<React.SetStateAction<string>>;
   audio: string;
   setAudioStorageId: React.Dispatch<
@@ -51,9 +44,8 @@ export interface GeneratePodcastProps {
 export const GeneratePodcast = ({
   audioMediaMethod,
   setAudioMediaMethod,
-  voiceCategories,
-  voiceType,
-  setVoiceType,
+  voice,
+  setVoice,
   setAudio,
   audio,
   setAudioStorageId,
@@ -71,7 +63,8 @@ export const GeneratePodcast = ({
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
   const { startUpload } = useUploadFiles(generateUploadUrl);
 
-  const getPodcastAudio = useAction(api.openai.generateAudioAction);
+  // const getPodcastAudio = useAction(api.openai.generateAudioAction);
+  const getPodcastAudio = useAction(api.playht.generateAudioAction);
 
   const getAudioUrl = useMutation(api.podcasts.getUrl);
 
@@ -115,7 +108,7 @@ export const GeneratePodcast = ({
   };
 
   const generateAudio = async () => {
-    if (!voiceType) {
+    if (!voice) {
       toast.warning("Please provide a voice type to generate a podcast");
       return setIsGenerating(false);
     }
@@ -128,7 +121,7 @@ export const GeneratePodcast = ({
     try {
       setIsGenerating(true);
       const response = await getPodcastAudio({
-        voice: voiceType,
+        voice: voice,
         input: voicePrompt,
       });
       const blob = new Blob([response], { type: "audio/mpeg" });
@@ -146,47 +139,7 @@ export const GeneratePodcast = ({
     if (!voiceRef.current) return;
 
     voiceRef.current.play();
-  }, [voiceType, voiceRef]);
-
-  // const handleGeneratePodcast = async () => {
-  //   setIsGenerating(true);
-  //   setAudio("");
-
-  //   if (!voiceType) {
-  //     toast.warning("Please provide a voice type to generate a podcast");
-  //     return setIsGenerating(false);
-  //   }
-
-  //   if (!voicePrompt) {
-  //     toast.warning("Please provide a prompt to generate a podcast");
-  //     return setIsGenerating(false);
-  //   }
-
-  //   try {
-  //     const response = await getPodcastAudio({
-  //       voice: voiceType,
-  //       input: voicePrompt,
-  //     });
-
-  //     const blob = new Blob([response], { type: "audio/mpeg" });
-  //     const fileName = `podcast-${uuidv4()}.mp3`;
-  //     const file = new File([blob], fileName, { type: "audio/mpeg" });
-
-  //     const uploaded = await startUpload([file]);
-  //     const storageId = (uploaded[0].response as any).storageId;
-
-  //     setAudioStorageId(storageId);
-
-  //     const audioUrl = await getAudioUrl({ storageId });
-  //     setAudio(audioUrl!);
-  //     setIsGenerating(false);
-  //     toast.success("Podcast generated successfully");
-  //   } catch (error) {
-  //     console.error("Error generating podcast audio", error);
-  //     toast.error("Error generating podcast audio");
-  //     setIsGenerating(false);
-  //   }
-  // };
+  }, [voice, voiceRef]);
 
   return (
     <div className="space-y-4 pb-4">
@@ -224,30 +177,13 @@ export const GeneratePodcast = ({
               <p className="text-muted-foreground">MP3</p>
             </div>
           </div>
-
-          {/* <UploadDropzone
-            uploadUrl={generateUploadUrl}
-            fileTypes={{
-              "image/*": [".png", ".jpeg", ".jpg"],
-            }}
-            onUploadBegin={() => {
-              setIsImageLoading(true);
-              setImage("");
-            }}
-            onUploadComplete={handleUploadComplete}
-            onUploadError={(error) => {
-              console.error(error);
-              toast.error("Image upload failed");
-              setIsImageLoading(true);
-            }}
-          /> */}
         </TabsContent>
         <TabsContent value="Generate" className="m-0 space-y-6 p-0">
           <div className="space-y-2">
             <Label>AI Voice</Label>
-            <Select onValueChange={setVoiceType} value={voiceType ?? undefined}>
+            <Select onValueChange={setVoice} value={voice ?? undefined}>
               <SelectTrigger
-                className={`w-full max-w-[200px] ${voiceType === null ? "text-muted-foreground" : "text-foreground"}`}
+                className={`w-full max-w-[200px] ${voice === null ? "text-muted-foreground" : "text-foreground"}`}
               >
                 <SelectValue
                   placeholder="Select AI voice type"
@@ -256,15 +192,15 @@ export const GeneratePodcast = ({
               </SelectTrigger>
 
               <SelectContent className="">
-                {voiceCategories.map((category) => (
-                  <SelectItem key={category} value={category} className="">
-                    {category}
+                {playHtVoices.map((v) => (
+                  <SelectItem key={v.value} value={v.value} className="">
+                    {v.value}
                   </SelectItem>
                 ))}
               </SelectContent>
-              {voiceType && (
+              {voice && (
                 <audio
-                  src={`/${voiceType}.mp3`}
+                  src={`/${voice}.mp3`}
                   ref={voiceRef}
                   className="hidden"
                 />
@@ -303,33 +239,6 @@ export const GeneratePodcast = ({
         </TabsContent>
       </Tabs>
 
-      {/* <div className="space-y-2">
-        <Label className="">AI Audio Prompt</Label>
-        <Textarea
-          className=""
-          placeholder="Provide text to generate podcast audio"
-          rows={5}
-          value={voicePrompt}
-          onChange={(e) => setVoicePrompt(e.target.value)}
-        />
-      </div>
-      <div className="w-full max-w-[200px]">
-        <Button
-          type="button"
-          className=""
-          onClick={handleGeneratePodcast}
-          variant={"primary_opaque"}
-        >
-          {isGenerating ? (
-            <>
-              Generating
-              <LoadingSpinner className="ml-2" />
-            </>
-          ) : (
-            "Generate"
-          )}
-        </Button>
-      </div> */}
       {audio && (
         <audio
           controls

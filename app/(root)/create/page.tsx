@@ -16,13 +16,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,8 +28,9 @@ import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Separator } from "@/components/ui/separator";
+import { playHtVoices } from "@/lib/playht-voices";
 
-const voiceCategories = ["alloy", "shimmer", "nova", "echo", "fable", "onyx"];
+// const voiceCategories = ["alloy", "shimmer", "nova", "echo", "fable", "onyx"];
 
 const formSchema = z.object({
   podcastTitle: z.string().min(2),
@@ -60,7 +54,7 @@ export default function CreatePodcast() {
   );
   const [audioDuration, setAudioDuration] = useState(0);
 
-  const [voiceType, setVoiceType] = useState<string | null>(null);
+  const [voice, setVoice] = useState<string | null>(null);
   const [voicePrompt, setVoicePrompt] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -81,7 +75,7 @@ export default function CreatePodcast() {
       if (
         !audioUrl ||
         !imageUrl ||
-        (audioMediaMethod === "Generate" && !voiceType)
+        (audioMediaMethod === "Generate" && !voice)
       ) {
         toast.error("Please generate audio and image");
         setIsSubmitting(false);
@@ -93,7 +87,7 @@ export default function CreatePodcast() {
         podcastDescription: data.podcastDescription,
         audioUrl,
         imageUrl,
-        voiceType: voiceType ?? undefined,
+        voiceType: voice ?? undefined,
         imagePrompt,
         voicePrompt,
         views: 0,
@@ -173,11 +167,10 @@ export default function CreatePodcast() {
             <GeneratePodcast
               audioMediaMethod={audioMediaMethod}
               setAudioMediaMethod={setAudioMediaMethod}
-              voiceCategories={voiceCategories}
               setAudioStorageId={setAudioStorageId}
               setAudio={setAudioUrl}
-              voiceType={voiceType!}
-              setVoiceType={setVoiceType}
+              voice={voice!}
+              setVoice={setVoice}
               audio={audioUrl}
               voicePrompt={voicePrompt}
               setVoicePrompt={setVoicePrompt}

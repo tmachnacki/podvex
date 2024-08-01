@@ -51,13 +51,12 @@ export const PodcastCard = ({
   };
 
   return (
-    <div
-      // href={`/podcasts/${podcastId}`}
+    <Link
+      href={`/podcasts/${podcastId}`}
       className="group relative cursor-pointer transition hover:!opacity-100 group-hover/podcasts:opacity-50"
-      onClick={() => {
-        updateViews({ podcastId });
-        router.push(`/podcasts/${podcastId}`);
-      }}
+      // onClick={() => {
+      //   router.push(`/podcasts/${podcastId}`);
+      // }}
     >
       <figure className="relative flex flex-col gap-2 rounded-xl">
         {audio?.podcastId !== podcastId && (
@@ -77,8 +76,11 @@ export const PodcastCard = ({
             // width={160}
             // height={160}
             fill
+            sizes="160"
             alt={title}
             className="aspect-square h-fit w-full rounded-xl object-cover object-center transition-transform group-hover:scale-105"
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAABCAQAAABN/Pf1AAAADUlEQVR42mP8X8+AAQAdgwGAL0naIQAAAABJRU5ErkJggg=="
           />
         </div>
         <div className="flex flex-col">
@@ -88,6 +90,6 @@ export const PodcastCard = ({
           </p>
         </div>
       </figure>
-    </div>
+    </Link>
   );
 };

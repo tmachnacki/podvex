@@ -6,7 +6,6 @@ import { useQuery } from "convex/react";
 import { EmptyState } from "@/components/empty-state";
 import { PodcastCard } from "@/components/podcast-card";
 import { Search } from "./search";
-import { LoadingSpinner } from "@/components/loading-spinner";
 import { PodcastGrid } from "@/components/podcast-grid";
 import { PodcastGridLoader } from "@/components/podcast-grid-skeleton";
 import { useAuth } from "@clerk/nextjs";

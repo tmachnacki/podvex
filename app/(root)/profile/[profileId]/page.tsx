@@ -50,6 +50,9 @@ export default function ProfilePage({
           podcasts={podcastsData?.podcasts!}
           imageUrl={authorUser?.imageUrl!}
           userFirstName={authorUser?.name!}
+          isVerified={authorUser.isVerified}
+          currentUserId={userId}
+          profileId={params.profileId}
         />
       </div>
       <section className="flex flex-col pt-12">

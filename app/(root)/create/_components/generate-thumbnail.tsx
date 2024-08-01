@@ -54,7 +54,7 @@ export const GenerateThumbnail = ({
   const deletePodcastAudio = useMutation(api.podcasts.deletePodcastAudio);
   const { startUpload } = useUploadFiles(generateUploadUrl);
   const getImageUrl = useMutation(api.podcasts.getUrl);
-  const handleGenerateThumbnail = useAction(api.openai.generateThumbnailAction);
+  // const handleGenerateThumbnail = useAction(api.openai.generateThumbnailAction);
 
   const handleImage = async (blob: Blob, fileName: string) => {
     setIsImageLoading(true);
@@ -79,19 +79,19 @@ export const GenerateThumbnail = ({
     }
   };
 
-  const generateImage = async () => {
-    try {
-      setIsGenerating(true);
-      const response = await handleGenerateThumbnail({ prompt: imagePrompt });
-      const blob = new Blob([response], { type: "image/png" });
-      handleImage(blob, `thumbnail-${uuidv4()}`);
-      setIsGenerating(false);
-    } catch (error) {
-      console.error(error);
-      toast.error("Error generating thumbnail");
-      setIsGenerating(false);
-    }
-  };
+  // const generateImage = async () => {
+  //   try {
+  //     setIsGenerating(true);
+  //     const response = await handleGenerateThumbnail({ prompt: imagePrompt });
+  //     const blob = new Blob([response], { type: "image/png" });
+  //     handleImage(blob, `thumbnail-${uuidv4()}`);
+  //     setIsGenerating(false);
+  //   } catch (error) {
+  //     console.error(error);
+  //     toast.error("Error generating thumbnail");
+  //     setIsGenerating(false);
+  //   }
+  // };
 
   const uploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -137,7 +137,32 @@ export const GenerateThumbnail = ({
 
   return (
     <div className="space-y-8 pb-4">
-      <Tabs
+      <div
+        className="flex h-40 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-[2px] border-dashed border-input transition hover:border-muted-foreground"
+        onClick={() => imageRef?.current?.click()}
+      >
+        <Input
+          type="file"
+          className="hidden"
+          ref={imageRef}
+          onChange={(e) => uploadImage(e)}
+        />
+        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          {!isImageLoading ? (
+            <CloudUpload className="h-6 w-6" />
+          ) : (
+            <LoadingSpinner className="h-6 w-6" />
+          )}
+        </div>
+        <div className="flex flex-col items-center gap-2 text-sm">
+          <h2 className="text-primary">Click to upload</h2>
+          <p className="text-muted-foreground">
+            SVG, PNG, JPG, or GIF (max. 1080x1080px)
+          </p>
+        </div>
+      </div>
+
+      {/* <Tabs
         defaultValue="Upload"
         className="w-full"
         onValueChange={(value) =>
@@ -173,23 +198,6 @@ export const GenerateThumbnail = ({
               </p>
             </div>
           </div>
-
-          {/* <UploadDropzone
-            uploadUrl={generateUploadUrl}
-            fileTypes={{
-              "image/*": [".png", ".jpeg", ".jpg"],
-            }}
-            onUploadBegin={() => {
-              setIsImageLoading(true);
-              setImage("");
-            }}
-            onUploadComplete={handleUploadComplete}
-            onUploadError={(error) => {
-              console.error(error);
-              toast.error("Image upload failed");
-              setIsImageLoading(true);
-            }}
-          /> */}
         </TabsContent>
         <TabsContent value="Generate" className="m-0 space-y-6 p-0">
           <div className="space-y-2">
@@ -221,7 +229,7 @@ export const GenerateThumbnail = ({
             </Button>
           </div>
         </TabsContent>
-      </Tabs>
+      </Tabs> */}
 
       {image && (
         <div className="group relative w-fit">

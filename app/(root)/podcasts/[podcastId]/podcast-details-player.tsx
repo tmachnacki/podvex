@@ -14,7 +14,6 @@ import { BookmarkMinus, BookmarkPlus, Play } from "lucide-react";
 import Link from "next/link";
 import { useUpdateViews } from "@/hooks/use-update-views";
 
-import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,

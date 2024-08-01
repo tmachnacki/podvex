@@ -6,18 +6,10 @@ import { useAudio } from "@/providers/audio-provider";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Doc } from "@/convex/_generated/dataModel";
-import {
-  AudioLines,
-  Check,
-  CheckCheck,
-  Headphones,
-  Shuffle,
-} from "lucide-react";
-
-export interface ProfilePodcastProps {
-  podcasts: Doc<"podcasts">[];
-  listeners: number;
-}
+import { AudioLines, Check, Headphones, Shuffle } from "lucide-react";
+import ShimmerButton from "@/components/magicui/shimmer-button";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export interface ProfileCardProps {
   podcasts: Doc<"podcasts">[];
@@ -25,6 +17,9 @@ export interface ProfileCardProps {
   listeners: number;
   imageUrl: string;
   userFirstName: string;
+  isVerified: boolean;
+  currentUserId: string;
+  profileId: string;
 }
 
 export const ProfileCard = ({
@@ -33,12 +28,18 @@ export const ProfileCard = ({
   listeners,
   imageUrl,
   userFirstName,
+  isVerified,
+  currentUserId,
+  profileId,
 }: ProfileCardProps) => {
   const { setAudio } = useAudio();
+  const router = useRouter();
 
   const [randomPodcast, setRandomPodcast] = useState<Doc<"podcasts"> | null>(
     null,
   );
+
+  const isOwnProfile = profileId === currentUserId;
 
   const playRandomPodcast = () => {
     const randomIndex = Math.floor(Math.random() * podcasts.length);
@@ -58,7 +59,7 @@ export const ProfileCard = ({
     }
   }, [randomPodcast, setAudio]);
 
-  if (!imageUrl) return <LoadingSpinner />;
+  // if (!imageUrl) return <LoadingSpinner />;
 
   return (
     <div className="flex flex-col gap-12 max-md:items-center md:flex-row">
@@ -80,14 +81,35 @@ export const ProfileCard = ({
       </div>
       <div className="flex flex-col max-md:items-center">
         <div className="flex flex-col">
-          <h1 className="text-3xl font-bold leading-none">{userFirstName}</h1>
-          <figure className="flex translate-y-0.5 items-center gap-2 pt-4">
-            <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-cyan-500">
-              <Check className="h-2 w-2 text-background" />
-            </span>
-            <h2 className="text-sm text-muted-foreground">Verified Creator</h2>
-          </figure>
+          <div className="flex items-center space-x-3">
+            <h1 className="text-3xl font-bold leading-none">{userFirstName}</h1>
 
+            {!isVerified && isOwnProfile && (
+              <ShimmerButton
+                className="h-10"
+                shimmerColor="#06b6d4"
+                onClick={() => router.push(`/get-verified/${currentUserId}`)}
+              >
+                <div className="flex items-center justify-center space-x-3 text-foreground">
+                  <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-cyan-500">
+                    <Check className="h-2 w-2 text-background" />
+                  </span>
+                  <span className="text-foreground">Get Verified</span>
+                </div>
+              </ShimmerButton>
+            )}
+          </div>
+
+          {isVerified && (
+            <figure className="flex items-center gap-2 pt-4">
+              <span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-cyan-500">
+                <Check className="h-2 w-2 text-background" />
+              </span>
+              <h2 className="text-sm text-muted-foreground">
+                Verified Creator
+              </h2>
+            </figure>
+          )}
           <figure className="flex items-center gap-3 pt-4">
             <Headphones className="h-5 w-5 text-muted-foreground" />
             <p className="font-semibold">

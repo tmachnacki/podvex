@@ -16,8 +16,9 @@ import type {
 } from "convex/server";
 import type * as files from "../files.js";
 import type * as http from "../http.js";
-import type * as openai from "../openai.js";
+import type * as playht from "../playht.js";
 import type * as podcasts from "../podcasts.js";
+import type * as stripe from "../stripe.js";
 import type * as users from "../users.js";
 
 /**
@@ -31,8 +32,9 @@ import type * as users from "../users.js";
 declare const fullApi: ApiFromModules<{
   files: typeof files;
   http: typeof http;
-  openai: typeof openai;
+  playht: typeof playht;
   podcasts: typeof podcasts;
+  stripe: typeof stripe;
   users: typeof users;
 }>;
 export declare const api: FilterApi<

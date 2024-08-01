@@ -1,24 +1,18 @@
 "use client";
 
-import { SignedIn, UserButton, useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { LikeYouCarousel } from "./carousel";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useRouter } from "next/navigation";
 import { useAudio } from "@/providers/audio-provider";
 import { cn } from "@/lib/utils";
-import { ChevronRight } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Id } from "@/convex/_generated/dataModel";
-import { UserNav } from "@/components/user-nav";
+import { Check } from "lucide-react";
 
 const RightSidebar = () => {
-  const { user } = useUser();
   const topPodcasters = useQuery(api.users.getTopUserByPodcastCount);
-  const router = useRouter();
 
   const { audio } = useAudio();
 
@@ -35,21 +29,6 @@ const RightSidebar = () => {
           audio?.audioUrl ? "h-[calc(100vh-124px)]" : "h-screen",
         )}
       >
-        {/* <SignedIn>
-          <div className="flex gap-3 pb-12">
-            <UserButton />
-            <Link
-              href={`/profile/${user?.id}`}
-              className="flex w-full items-center justify-between"
-            >
-              <h1 className="truncate font-semibold">
-                {user?.firstName} {user?.lastName}
-              </h1>
-              <ChevronRight className="h-5 w-5 text-primary" />
-            </Link>
-          </div>
-        </SignedIn> */}
-        {/* <UserNav isMobileNav={false} /> */}
         <section className="space-y-2 pb-12">
           <header className="flex items-center justify-between">
             <h4 className="text-base font-semibold">For Listeners Like You</h4>
@@ -60,25 +39,22 @@ const RightSidebar = () => {
         <section className="flex flex-col space-y-2 pt-12">
           <header className="flex items-center justify-between">
             <h4 className="text-base font-semibold">Top creators</h4>
-            <Link
+            {/* <Link
               href={"/discover"}
               className="text-muted-foreground hover:text-foreground"
             >
               See All
-            </Link>
+            </Link> */}
           </header>
           <ul className="">
             {topPodcasters?.slice(0, 4).map((podcaster) => (
               <li
                 key={podcaster._id}
                 className="border-b border-border py-3 last:border-none"
-                // onClick={() => router.push(`/profile/${podcaster.clerkId}`)}
               >
                 <Link
                   href={`/profile/${podcaster.clerkId}`}
-                  // key={podcaster._id}
                   className="flex cursor-pointer justify-between text-muted-foreground hover:text-foreground"
-                  // onClick={() => router.push(`/profile/${podcaster.clerkId}`)}
                 >
                   <figure className="flex items-center gap-2">
                     <Image
@@ -89,6 +65,11 @@ const RightSidebar = () => {
                       className="aspect-square rounded-md"
                     />
                     <h2 className="">{podcaster.name}</h2>
+                    {podcaster.isVerified && (
+                      <span className="flex h-3 w-3 items-center justify-center rounded-full bg-cyan-500 text-background">
+                        <Check className="h-2 w-2 text-background" />
+                      </span>
+                    )}
                   </figure>
                   <div className="flex items-center">
                     <p className="">{podcaster.totalPodcasts} podcasts</p>

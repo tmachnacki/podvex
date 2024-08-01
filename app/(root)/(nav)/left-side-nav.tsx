@@ -1,35 +1,16 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import {
-  SignedIn,
-  SignedOut,
-  SignOutButton,
-  useAuth,
-  useClerk,
-  UserButton,
-  useUser,
-} from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import React from "react";
-import { Button } from "../../../components/ui/button";
+import { Button } from "@/components/ui/button";
 import { useAudio } from "@/providers/audio-provider";
-import {
-  House,
-  Compass,
-  Mic,
-  ArrowLeft,
-  LogOut,
-  Library,
-  User,
-} from "lucide-react";
-import { ThemeSwitcher } from "@/components/theme-switcher";
+import { House, Compass, Mic, Library } from "lucide-react";
 import { ScrollBar, ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
-import { UserNav } from "@/components/user-nav";
+import { UserNav } from "./user-nav";
 
 export const sideNavItems = [
   {
@@ -47,18 +28,11 @@ export const sideNavItems = [
     route: "/create",
     label: "Create Podcast",
   },
-  // {
-  //   icon: <Library className="h-6 w-6" />,
-  //   route: "/library",
-  //   label: "Your Library",
-  // },
 ];
 
 const LeftSideNav = () => {
   const pathname = usePathname();
-  const router = useRouter();
   const { audio } = useAudio();
-  // const { userId: clerkId, signOut,  } = useAuth();
   const { user, isLoaded, isSignedIn } = useUser();
 
   const isActive = (route: string) =>
@@ -100,7 +74,7 @@ const LeftSideNav = () => {
                 className={cn(
                   "relative flex items-center justify-center gap-3 rounded-lg px-4 py-3 max-lg:px-4 lg:justify-start",
                   isActive(route)
-                    ? "bg-gradient-to-r from-primary to-primary/0 text-white"
+                    ? "bg-gradient-to-r from-primary via-primary to-primary/0 text-white"
                     : "hover:bg-accent dark:hover:bg-background",
                 )}
               >
@@ -115,7 +89,7 @@ const LeftSideNav = () => {
               className={cn(
                 "relative flex items-center justify-center gap-3 rounded-lg px-4 py-3 max-lg:px-4 lg:justify-start",
                 isActive(`/library/${user?.id}`)
-                  ? "bg-gradient-to-r from-primary to-primary/0 text-white"
+                  ? "bg-gradient-to-r from-primary via-primary to-primary/0 text-white"
                   : "hover:bg-accent dark:hover:bg-background",
               )}
             >
@@ -123,8 +97,10 @@ const LeftSideNav = () => {
               <p className="max-lg:hidden">Your Library</p>
             </Link>
           ) : (
-            <div className="flex w-full items-center px-4 py-3">
-              <Skeleton className="h-7 w-40 rounded-md" />
+            <div className="relative flex cursor-default items-center justify-center gap-3 rounded-lg px-4 py-3 opacity-50 max-lg:px-4 lg:justify-start">
+              {/* <Skeleton className="h-7 w-40 rounded-md" /> */}
+              <Library className="h-5 w-5" />
+              <p className="max-lg:hidden">Your Library</p>
             </div>
           )}
         </div>

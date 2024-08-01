@@ -1,6 +1,11 @@
 import { ConvexError, v } from "convex/values";
 
-import { internalMutation, mutation, query } from "./_generated/server";
+import {
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from "./_generated/server";
 
 export const getUserById = query({
   args: { clerkId: v.string() },
@@ -64,6 +69,7 @@ export const createUser = internalMutation({
       name: args.name,
       savedPodcasts: [],
       listeners: [],
+      isVerified: false,
     });
   },
 });
@@ -189,5 +195,103 @@ export const updateListeners = mutation({
         listeners: [...user.listeners, args.listenerId],
       });
     }
+  },
+});
+
+export const updateSubscription = internalMutation({
+  args: {
+    priceId: v.string(),
+    userId: v.string(),
+    stripeCustomerId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.userId))
+      .first();
+
+    if (!user) {
+      throw new ConvexError("User not found");
+    }
+
+    await ctx.db.patch(user._id, {
+      priceId: args.priceId,
+      isVerified: true,
+      stripeCustomerId: args.stripeCustomerId,
+    });
+  },
+});
+
+export const updateSubscriptionByPriceId = internalMutation({
+  args: { priceId: v.string(), userId: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.userId))
+      .first();
+
+    if (!user) {
+      throw new ConvexError("User matching stripe customer id not found");
+    }
+
+    await ctx.db.patch(user._id, {
+      isVerified: true,
+    });
+  },
+});
+
+export const cancelSubscription = internalMutation({
+  args: { priceId: v.string(), userId: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.userId))
+      .first();
+
+    if (!user) {
+      throw new ConvexError("User not found");
+    }
+
+    await ctx.db.patch(user._id, {
+      priceId: args.priceId,
+      isVerified: false,
+    });
+  },
+});
+
+export const getUserByCustomerId = query({
+  args: { stripeCustomerId: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_stripeCustomerId", (q) =>
+        q.eq("stripeCustomerId", args.stripeCustomerId),
+      )
+      .first();
+
+    if (!user) {
+      throw new ConvexError("No user found with stripe customer id");
+    }
+
+    return user;
+  },
+});
+
+export const getUserCustomer = internalQuery({
+  args: { userId: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.userId))
+      .first();
+
+    if (!user) {
+      throw new ConvexError("User not found");
+    }
+    if (!user.stripeCustomerId) {
+      throw new ConvexError("User has no stripe customer id");
+    }
+
+    return user;
   },
 });

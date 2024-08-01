@@ -1,6 +1,6 @@
-import { LeftSideNav } from "@/app/(root)/_components/left-side-nav";
-import { MobileNav } from "@/app/(root)/_components/mobile-nav";
-import { RightSidebar } from "@/app/(root)/_components/right-side-bar/right-side-bar";
+import { LeftSideNav } from "@/app/(root)/(nav)/left-side-nav";
+import { MobileNav } from "@/app/(root)/(nav)/mobile-nav";
+import { RightSidebar } from "@/app/(root)/(nav)/right-side-bar/right-side-bar";
 import Image from "next/image";
 import Link from "next/link";
 import PodcastPlayer from "@/components/podcast-player";
@@ -16,14 +16,14 @@ export default function RootLayout({
       <main className="relative flex overflow-hidden">
         <div
           aria-hidden="true"
-          className="absolute -top-40 left-0 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
+          className="absolute -top-40 left-0 -z-10 transform-gpu overflow-hidden blur-3xl md:-top-80"
         >
           <div
             style={{
               clipPath:
                 "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)",
             }}
-            className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-primary/50 to-pink-500/50 opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+            className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-primary/50 to-pink-500/50 opacity-30 md:left-[calc(50%-30rem)] md:w-[72.1875rem]"
           />
         </div>
 
@@ -47,7 +47,7 @@ export default function RootLayout({
                 </Link>
                 <MobileNav />
               </div>
-              <div className="flex flex-col md:pb-12">{children}</div>
+              <div className="flex flex-col pb-12">{children}</div>
             </div>
           </section>
           <ScrollBar />
@@ -57,14 +57,14 @@ export default function RootLayout({
 
         <div
           aria-hidden="true"
-          className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
+          className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl md:top-[calc(100%-30rem)]"
         >
           <div
             style={{
               clipPath:
                 "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)",
             }}
-            className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-primary/50 to-pink-500/50 opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
+            className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-primary/50 to-pink-500/50 opacity-30 md:left-[calc(50%+36rem)] md:w-[72.1875rem]"
           />
         </div>
       </main>

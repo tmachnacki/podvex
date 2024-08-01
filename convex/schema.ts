@@ -29,5 +29,11 @@ export default defineSchema({
     name: v.string(),
     savedPodcasts: v.array(v.id("podcasts")),
     listeners: v.array(v.string()),
-  }),
+    priceId: v.optional(v.string()),
+    stripeCustomerId: v.optional(v.string()),
+    isVerified: v.boolean(),
+  })
+    .index("by_clerkId", ["clerkId"])
+    .index("by_priceId", ["priceId"])
+    .index("by_stripeCustomerId", ["stripeCustomerId"]),
 });
