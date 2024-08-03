@@ -1,7 +1,13 @@
 "use node";
 import { action } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
-import * as PlayHT from "playht";
+import UnrealSpeech from "unrealspeech";
+// import * as PlayHT from "playht";
+
+// PlayHT.init({
+//   apiKey: process.env.PLAYHT_API_KEY!,
+//   userId: process.env.PLAYHT_USER_ID!,
+// });
 
 // import OpenAI from "openai";
 // import { SpeechCreateParams } from "openai/resources/audio/speech.mjs";
@@ -10,10 +16,7 @@ import * as PlayHT from "playht";
 //   apiKey: process.env.OPENAI_API_KEY!,
 // });
 
-PlayHT.init({
-  apiKey: process.env.PLAYHT_API_KEY!,
-  userId: process.env.PLAYHT_USER_ID!,
-});
+const unrealSpeech = new UnrealSpeech(process.env.UNREALSPEECH_API_KEY!);
 
 export const generateAudioAction = action({
   args: {
@@ -34,14 +37,11 @@ export const generateAudioAction = action({
     //   response_format: "mp3",
     // });
 
-    const generated = await PlayHT.generate(input, {
-      voiceEngine: "Standard",
-      quality: "medium",
-      voiceId: voice,
-    });
-    console.log(generated);
+    const speechData = await unrealSpeech.speech(input, voice);
 
-    const { audioUrl } = generated;
+    console.log(speechData);
+
+    const audioUrl: string = speechData.OutputUri;
 
     if (!audioUrl) throw new ConvexError("Error generating audio");
     const mp3Response = await fetch(audioUrl);

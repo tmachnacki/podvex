@@ -51,15 +51,25 @@ export const PodcastCard = ({
   };
 
   return (
-    <Link
-      href={`/podcasts/${podcastId}`}
-      className="group relative cursor-pointer transition hover:!opacity-100 group-hover/podcasts:opacity-50"
-      // onClick={() => {
-      //   router.push(`/podcasts/${podcastId}`);
-      // }}
+    <div
+      // href={`/podcasts/${podcastId}`}
+      className="group relative cursor-default rounded-lg p-2 transition hover:bg-accent hover:!opacity-100 group-hover/podcasts:opacity-70 dark:hover:bg-neutral-900 dark:group-hover/podcasts:opacity-50"
+      onClick={() => {
+        router.push(`/podcasts/${podcastId}`);
+      }}
     >
       <figure className="relative flex flex-col gap-2 rounded-xl">
-        {audio?.podcastId !== podcastId && (
+        {audio?.podcastId === podcastId ? (
+          <span
+            className="absolute bottom-10 right-1.5 z-20 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-primary opacity-0 shadow-lg shadow-primary/30 transition duration-200 hover:scale-[105%] group-hover:-translate-y-4 group-hover:opacity-100"
+            onClick={(e: React.MouseEvent) => {
+              e.stopPropagation();
+              handlePlay();
+            }}
+          >
+            <Play className="h-4 w-4 text-primary-foreground" />
+          </span>
+        ) : (
           <span
             className="absolute bottom-10 right-1.5 z-20 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-primary opacity-0 shadow-lg shadow-primary/30 transition duration-200 hover:scale-[105%] group-hover:-translate-y-4 group-hover:opacity-100"
             onClick={(e: React.MouseEvent) => {
@@ -90,6 +100,6 @@ export const PodcastCard = ({
           </p>
         </div>
       </figure>
-    </Link>
+    </div>
   );
 };

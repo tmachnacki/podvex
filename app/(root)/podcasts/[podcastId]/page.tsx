@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { PodcastGrid } from "@/components/podcast-grid";
 
 export default function PodcastDetails({
   params: { podcastId },
@@ -179,7 +180,7 @@ export default function PodcastDetails({
             <h2 className="font-semibold">Transcription</h2>
 
             <div className="flex h-7 items-center justify-center rounded-full border border-border px-3.5 text-sm font-semibold">
-              <span className="bg-gradient-to-r from-orange-600 to-primary bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-fuchsia-500 to-primary bg-clip-text text-transparent">
                 Made with AI
               </span>
               <Sparkles className="ml-2 h-4 w-4 text-primary" />
@@ -195,7 +196,7 @@ export default function PodcastDetails({
             <h2 className="font-semibold">Thumbnail Prompt</h2>
 
             <div className="flex h-7 items-center justify-center rounded-full border border-border px-3.5 text-sm font-semibold">
-              <span className="bg-gradient-to-r from-orange-600 to-primary bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-fuchsia-500 to-primary bg-clip-text text-transparent">
                 Made with AI
               </span>
               <Sparkles className="ml-2 h-4 w-4 text-primary" />
@@ -211,7 +212,7 @@ export default function PodcastDetails({
         <h1 className="font-semibold">You May Also Like</h1>
 
         {similarPodcasts && similarPodcasts.length > 0 ? (
-          <div className="group/podcasts grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+          <PodcastGrid>
             {similarPodcasts?.map(
               ({
                 _id,
@@ -235,7 +236,7 @@ export default function PodcastDetails({
                 />
               ),
             )}
-          </div>
+          </PodcastGrid>
         ) : (
           <>
             <EmptyState

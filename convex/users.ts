@@ -295,3 +295,24 @@ export const getUserCustomer = internalQuery({
     return user;
   },
 });
+
+export const removePodcastFromUsersSaves = mutation({
+  args: { podcastId: v.id("podcasts") },
+  handler: async (ctx, args) => {
+    const users = await ctx.db.query("users").collect();
+
+    const usersWithPodcastSaved = users.filter((u) =>
+      u.savedPodcasts.includes(args.podcastId),
+    );
+
+    await Promise.all(
+      usersWithPodcastSaved.map(async (u) => {
+        await ctx.db.patch(u._id, {
+          savedPodcasts: u.savedPodcasts.filter(
+            (pId) => pId !== args.podcastId,
+          ),
+        });
+      }),
+    );
+  },
+});

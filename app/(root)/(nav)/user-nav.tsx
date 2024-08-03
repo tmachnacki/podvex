@@ -43,7 +43,7 @@ export const UserNav = () => {
               className={cn(
                 "relative flex w-full cursor-pointer items-center justify-start space-x-3 text-muted-foreground hover:text-foreground md:justify-center lg:justify-start",
               )}
-              onClick={() => signOut(() => router.push("/"))}
+              onClick={() => signOut(() => router.push("/sign-in"))}
             >
               <LogOut className="h-5 w-5 rotate-180" />
               <span className="block md:hidden lg:block">Log out</span>

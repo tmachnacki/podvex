@@ -138,8 +138,8 @@ const PodcastPlayer = () => {
             <Link href={`/podcast/${audio?.podcastId}`}>
               <Image
                 src={audio?.imageUrl! || "/logo.svg"}
-                width={56}
-                height={56}
+                width={48}
+                height={48}
                 alt="logo"
                 className="aspect-square rounded-md object-cover object-center"
               />

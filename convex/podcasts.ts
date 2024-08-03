@@ -1,6 +1,6 @@
 import { ConvexError, v } from "convex/values";
 
-import { mutation, query } from "./_generated/server";
+import { action, mutation, query } from "./_generated/server";
 
 export const createPodcast = mutation({
   args: {
@@ -107,7 +107,7 @@ export const getTrendingPodcasts = query({
   handler: async (ctx) => {
     const podcast = await ctx.db.query("podcasts").collect();
 
-    return podcast.sort((a, b) => b.views - a.views).slice(0, 8);
+    return podcast.sort((a, b) => b.views - a.views).slice(0, 12);
   },
 });
 
@@ -119,8 +119,8 @@ export const getSavedPodcasts = query({
   handler: async (ctx, args) => {
     const user = await ctx.db
       .query("users")
-      .filter((q) => q.eq(q.field("clerkId"), args.clerkId))
-      .unique();
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
+      .first();
 
     if (!user) throw new ConvexError("User not found");
 
@@ -161,7 +161,7 @@ export const getPodcastBySearch = query({
     const authorSearch = await ctx.db
       .query("podcasts")
       .withSearchIndex("search_author", (q) => q.search("author", args.search))
-      .take(10);
+      .take(12);
 
     if (authorSearch.length > 0) {
       return authorSearch;
@@ -172,7 +172,7 @@ export const getPodcastBySearch = query({
       .withSearchIndex("search_title", (q) =>
         q.search("podcastTitle", args.search),
       )
-      .take(10);
+      .take(12);
 
     if (titleSearch.length > 0) {
       return titleSearch;
@@ -183,7 +183,7 @@ export const getPodcastBySearch = query({
       .withSearchIndex("search_body", (q) =>
         q.search("podcastDescription" || "podcastTitle", args.search),
       )
-      .take(10);
+      .take(12);
   },
 });
 
@@ -216,6 +216,23 @@ export const deletePodcast = mutation({
     if (!podcast) {
       throw new ConvexError("Podcast not found");
     }
+
+    // remove podcast from saves
+    const users = await ctx.db.query("users").collect();
+
+    const usersWithPodcastSaved = users.filter((u) =>
+      u.savedPodcasts.includes(args.podcastId),
+    );
+
+    await Promise.all(
+      usersWithPodcastSaved.map(async (u) => {
+        await ctx.db.patch(u._id, {
+          savedPodcasts: u.savedPodcasts.filter(
+            (pId) => pId !== args.podcastId,
+          ),
+        });
+      }),
+    );
 
     await ctx.storage.delete(args.imageStorageId);
     await ctx.storage.delete(args.audioStorageId);

@@ -16,9 +16,9 @@ import type {
 } from "convex/server";
 import type * as files from "../files.js";
 import type * as http from "../http.js";
-import type * as playht from "../playht.js";
 import type * as podcasts from "../podcasts.js";
 import type * as stripe from "../stripe.js";
+import type * as texttospeech from "../texttospeech.js";
 import type * as users from "../users.js";
 
 /**
@@ -32,9 +32,9 @@ import type * as users from "../users.js";
 declare const fullApi: ApiFromModules<{
   files: typeof files;
   http: typeof http;
-  playht: typeof playht;
   podcasts: typeof podcasts;
   stripe: typeof stripe;
+  texttospeech: typeof texttospeech;
   users: typeof users;
 }>;
 export declare const api: FilterApi<

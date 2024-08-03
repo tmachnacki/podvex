@@ -14,7 +14,7 @@ import { useUploadFiles } from "@xixixao/uploadstuff/react";
 import { LoadingSpinner } from "../../../../components/loading-spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { CloudUpload } from "lucide-react";
+import { CloudUpload, Sparkles } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { playHtVoices } from "@/lib/playht-voices";
+import { aiVoices } from "@/lib/ai-voices";
 
 export interface GeneratePodcastProps {
   audioMediaMethod: "Upload" | "Generate";
@@ -64,7 +64,7 @@ export const GeneratePodcast = ({
   const { startUpload } = useUploadFiles(generateUploadUrl);
 
   // const getPodcastAudio = useAction(api.openai.generateAudioAction);
-  const getPodcastAudio = useAction(api.playht.generateAudioAction);
+  const getPodcastAudio = useAction(api.texttospeech.generateAudioAction);
 
   const getAudioUrl = useMutation(api.podcasts.getUrl);
 
@@ -150,9 +150,14 @@ export const GeneratePodcast = ({
           setAudioMediaMethod(value as "Upload" | "Generate")
         }
       >
-        <TabsList className="mb-4">
+        <TabsList className="mb-4 dark:bg-neutral-900">
           <TabsTrigger value="Upload">Upload</TabsTrigger>
-          <TabsTrigger value="Generate">Generate</TabsTrigger>
+          <TabsTrigger value="Generate">
+            <span className="bg-gradient-to-r from-fuchsia-500 to-primary bg-clip-text text-transparent">
+              Generate
+            </span>
+            <Sparkles className="ml-2 h-4 w-4 text-primary" />
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="Upload" className="m-0 p-0">
           <div
@@ -192,9 +197,13 @@ export const GeneratePodcast = ({
               </SelectTrigger>
 
               <SelectContent className="">
-                {playHtVoices.map((v) => (
-                  <SelectItem key={v.value} value={v.value} className="">
-                    {v.value}
+                {aiVoices.map((voice) => (
+                  <SelectItem
+                    key={voice.value}
+                    value={voice.value}
+                    className=""
+                  >
+                    {voice.value}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -216,6 +225,7 @@ export const GeneratePodcast = ({
               rows={5}
               value={voicePrompt}
               onChange={(e) => setVoicePrompt(e.target.value)}
+              maxLength={1000}
             />
           </div>
           <div className="w-full">
@@ -244,7 +254,7 @@ export const GeneratePodcast = ({
           controls
           src={audio}
           autoPlay
-          className=""
+          className="pt-2"
           onLoadedMetadata={(e) => setAudioDuration(e.currentTarget.duration)}
         />
       )}

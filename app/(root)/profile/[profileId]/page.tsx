@@ -25,6 +25,8 @@ export default function ProfilePage({
   });
   const { userId } = useAuth();
 
+  const isOwnProfile = userId === params.profileId;
+
   if (!authorUser || !podcastsData || !userId) {
     return (
       <section className="flex flex-col">
@@ -57,12 +59,15 @@ export default function ProfilePage({
       </div>
       <section className="flex flex-col pt-12">
         <h1 className="pb-8 text-lg font-bold">
-          {`${authorUser?.name}${authorUser?.name.endsWith("s") ? "'" : "'s"} Podcasts`}
+          {isOwnProfile
+            ? "Your"
+            : `${authorUser?.name}${authorUser?.name.endsWith("s") ? "'" : "'s"}`}
+          {" Podcasts"}
         </h1>
         {podcastsData && podcastsData.podcasts.length > 0 ? (
           <PodcastGrid>
             {podcastsData.podcasts
-              ?.slice(0, 4)
+              ?.slice(0, 8)
               .map((podcast) => (
                 <PodcastCard
                   key={podcast._id}

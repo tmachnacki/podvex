@@ -28,9 +28,6 @@ import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Separator } from "@/components/ui/separator";
-import { playHtVoices } from "@/lib/playht-voices";
-
-// const voiceCategories = ["alloy", "shimmer", "nova", "echo", "fable", "onyx"];
 
 const formSchema = z.object({
   podcastTitle: z.string().min(2),
@@ -182,7 +179,7 @@ export default function CreatePodcast() {
             <div className="pt-4">
               <h2 className="text-lg font-semibold">Podcast Image</h2>
               <p className="text-muted-foreground">
-                {"Upload or generate a thumbnail for your podcast"}
+                {"Upload a thumbnail for your podcast"}
               </p>
             </div>
 
