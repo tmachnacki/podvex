@@ -6,6 +6,7 @@ import Link from "next/link";
 import PodcastPlayer from "@/components/podcast-player";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ContentWrapper } from "./content-wrapper";
+import { SignedIn } from "@clerk/nextjs";
 
 export default function RootLayout({
   children,

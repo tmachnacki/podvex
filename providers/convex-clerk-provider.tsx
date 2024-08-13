@@ -13,6 +13,14 @@ const convex = new ConvexReactClient(
 const ConvexClerkProvider = ({ children }: { children: ReactNode }) => (
   <ClerkProvider
     publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY as string}
+    signInUrl={process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL as string}
+    signUpUrl={process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL as string}
+    signInForceRedirectUrl={
+      process.env.NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL as string
+    }
+    signUpForceRedirectUrl={
+      process.env.NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL as string
+    }
     appearance={{
       layout: {
         logoImageUrl: "/logo.svg",

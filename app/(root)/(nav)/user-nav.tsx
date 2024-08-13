@@ -43,7 +43,12 @@ export const UserNav = () => {
               className={cn(
                 "relative flex w-full cursor-pointer items-center justify-start space-x-3 text-muted-foreground hover:text-foreground md:justify-center lg:justify-start",
               )}
-              onClick={() => signOut({ redirectUrl: "/sign-in" })}
+              onClick={() =>
+                signOut({
+                  redirectUrl: process.env
+                    .NEXT_PUBLIC_CLERK_SIGN_IN_URL as string,
+                })
+              }
             >
               <LogOut className="h-5 w-5 rotate-180" />
               <span className="block md:hidden lg:block">Log out</span>
