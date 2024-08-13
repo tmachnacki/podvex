@@ -4,17 +4,14 @@ import {
   Table,
   TableBody,
   TableCaption,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
-import { useState } from "react";
 import { PodcastRow } from "./podcast-row";
 import { Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 const LIMIT = 48;
 export default function History({ params }: { params: { userId: string } }) {

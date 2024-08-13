@@ -6,7 +6,7 @@ import { useAudio } from "@/providers/audio-provider";
 import { api } from "@/convex/_generated/api";
 import { useMutation } from "convex/react";
 import { toast } from "sonner";
-import { AudioLines, Play } from "lucide-react";
+import { AudioLines, Circle, Play } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUpdateViews } from "@/hooks/use-update-views";
 import { useUpdateListeners } from "@/hooks/use-update-listeners";
@@ -93,9 +93,13 @@ export const PodcastCard = ({
               <AudioLines className="h-4 w-4 animate-pulse text-primary" />
             )}
           </div>
-          <p className="truncate text-sm font-normal capitalize text-muted-foreground">
-            {description}
-          </p>
+          <div className="flex items-center space-x-2 truncate">
+            <p className="text-sm font-normal">{author}</p>
+            <Circle className="h-1 w-1 shrink-0 fill-current text-muted-foreground" />
+            <p className="block shrink truncate text-sm font-normal capitalize text-muted-foreground">
+              {description}
+            </p>
+          </div>
         </div>
       </figure>
     </div>

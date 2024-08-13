@@ -169,10 +169,10 @@ export const PodcastRow = ({
           </div>
         </div>
       </TableCell>
-      <TableCell className="block truncate font-normal">
+      <TableCell className="font-normal">
         {lastPlayed && new Date(lastPlayed).toDateString()}
       </TableCell>
-      <TableCell>{formatTime(podcast.audioDuration)}</TableCell>
+      <TableCell className="">{formatTime(podcast.audioDuration)}</TableCell>
       <TableCell>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

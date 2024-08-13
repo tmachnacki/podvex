@@ -82,12 +82,14 @@ export default function ProfilePage({
                 />
               ))}
           </PodcastGrid>
-        ) : (
+        ) : isOwnProfile ? (
           <EmptyState
             title="You have not created any podcasts yet"
             buttonLink="/create"
             buttonText="Create Podcast"
           />
+        ) : (
+          <EmptyState title="No podcasts yet" />
         )}
       </section>
     </section>

@@ -25,7 +25,7 @@ export default function Discover({
       <Search />
       <div className="flex flex-col gap-8">
         <h1 className="text-xl font-bold">
-          {!search ? "Discover Top Podcasts" : "Search results for "}
+          {!search ? "Discover New Podcasts" : "Search results for "}
           {search && <span className="">{search}</span>}
         </h1>
 
