@@ -49,6 +49,8 @@ export const LikeYouCarousel = ({
     );
   }
 
+  if (creatorSlides.length === 0) return null;
+
   return (
     <Carousel
       plugins={[plugin.current]}

@@ -6,7 +6,7 @@ import { Button } from "../../../../components/ui/button";
 import { cn } from "@/lib/utils";
 import { Label } from "../../../../components/ui/label";
 import { Textarea } from "../../../../components/ui/textarea";
-import { CloudUpload, Loader, Trash2, X } from "lucide-react";
+import { CloudUpload, Loader, Pencil, Trash2, X } from "lucide-react";
 import { Input } from "../../../../components/ui/input";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -23,21 +23,27 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export interface GenerateThumbnailProps {
-  setImage: Dispatch<SetStateAction<string>>;
+  setImageUrl: Dispatch<SetStateAction<string>>;
   setImageStorageId: Dispatch<SetStateAction<Id<"_storage"> | null>>;
   imageStorageId: Id<"_storage"> | null;
-  image: string;
+  imageUrl: string;
   imagePrompt: string;
   setImagePrompt: Dispatch<SetStateAction<string>>;
+  isDeletingThumbnail: boolean;
+  setIsDeletingThumbnail: Dispatch<SetStateAction<boolean>>;
+  handleDeleteThumbnail: () => Promise<string | number | undefined>;
 }
 
 export const GenerateThumbnail = ({
-  setImage,
+  setImageUrl,
   setImageStorageId,
   imageStorageId,
-  image,
+  imageUrl,
   imagePrompt,
   setImagePrompt,
+  isDeletingThumbnail,
+  setIsDeletingThumbnail,
+  handleDeleteThumbnail,
 }: GenerateThumbnailProps) => {
   const [mediaMethod, setMediaMethod] = useState<"Upload" | "Generate">(
     "Upload",
@@ -46,21 +52,24 @@ export const GenerateThumbnail = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const imageRef = useRef<HTMLInputElement>(null);
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
-  const [isDeletingThumbnail, setIsDeletingThumbnail] = useState(false);
-  const deletePodcastThumbnail = useMutation(
-    api.podcasts.deletePodcastThumbnail,
-  );
-  const [isDeletingAudio, setIsDeletingAudio] = useState(false);
-  const deletePodcastAudio = useMutation(api.podcasts.deletePodcastAudio);
+  // const deletePodcastThumbnail = useMutation(
+  //   api.podcasts.deletePodcastThumbnail,
+  // );
+
   const { startUpload } = useUploadFiles(generateUploadUrl);
   const getImageUrl = useMutation(api.podcasts.getUrl);
   // const handleGenerateThumbnail = useAction(api.openai.generateThumbnailAction);
 
   const handleImage = async (blob: Blob, fileName: string) => {
     setIsImageLoading(true);
-    setImage("");
+    setImageUrl("");
 
     try {
+      // if image already exists, delete it
+      if (imageUrl && imageStorageId) {
+        await handleDeleteThumbnail();
+      }
+
       const file = new File([blob], fileName, { type: "image/png" });
 
       const uploaded = await startUpload([file]);
@@ -68,14 +77,14 @@ export const GenerateThumbnail = ({
 
       setImageStorageId(storageId);
 
-      const imageUrl = await getImageUrl({ storageId });
-      setImage(imageUrl!);
+      const newImageUrl = await getImageUrl({ storageId });
+      setImageUrl(newImageUrl!);
       setIsImageLoading(false);
-      toast("Thumbnail generated successfully");
+      toast("Thumbnail created successfully");
     } catch (error) {
       setIsImageLoading(false);
       console.error(error);
-      toast.error("Error generating thumbnail");
+      toast.error("Error storing thumbnail");
     }
   };
 
@@ -113,128 +122,34 @@ export const GenerateThumbnail = ({
     const storageId = (uploaded[0].response as any).storageId;
     setImageStorageId(storageId);
     const imageUrl = await getImageUrl({ storageId });
-    setImage(imageUrl!);
+    setImageUrl(imageUrl!);
     setIsImageLoading(false);
     toast("Thumbnail generated successfully");
   };
 
-  const handleDeleteThumbnail = async () => {
-    if (!imageStorageId) return toast.error("image storage not provided");
-    try {
-      setIsDeletingThumbnail(true);
-      await deletePodcastThumbnail({ imageStorageId });
-      setImageStorageId(null);
-      setImage("");
+  // const handleDeleteThumbnail = async () => {
+  //   if (!imageStorageId) return toast.error("image storage not provided");
+  //   try {
+  //     setIsDeletingThumbnail(true);
+  //     await deletePodcastThumbnail({ imageStorageId });
+  //     setImageStorageId(null);
+  //     setImage("");
 
-      setIsDeletingThumbnail(false);
-      toast("Thumbnail deleted");
-    } catch (error) {
-      toast.error("Error deleting thumbnail");
-      console.error(error);
-      setIsDeletingThumbnail(false);
-    }
-  };
+  //     setIsDeletingThumbnail(false);
+  //     toast("Thumbnail deleted");
+  //   } catch (error) {
+  //     toast.error("Error deleting thumbnail");
+  //     console.error(error);
+  //     setIsDeletingThumbnail(false);
+  //   }
+  // };
 
   return (
     <div className="space-y-8 pb-4">
-      <div
-        className="flex h-40 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-[2px] border-dashed border-input transition hover:border-muted-foreground"
-        onClick={() => imageRef?.current?.click()}
-      >
-        <Input
-          type="file"
-          className="hidden"
-          ref={imageRef}
-          onChange={(e) => uploadImage(e)}
-        />
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          {!isImageLoading ? (
-            <CloudUpload className="h-6 w-6" />
-          ) : (
-            <LoadingSpinner className="h-6 w-6" />
-          )}
-        </div>
-        <div className="flex flex-col items-center gap-2 text-sm">
-          <h2 className="text-primary">Click to upload</h2>
-          <p className="text-muted-foreground">
-            SVG, PNG, JPG, or GIF (max. 1080x1080px)
-          </p>
-        </div>
-      </div>
-
-      {/* <Tabs
-        defaultValue="Upload"
-        className="w-full"
-        onValueChange={(value) =>
-          setMediaMethod(value as "Upload" | "Generate")
-        }
-      >
-        <TabsList className="mb-4">
-          <TabsTrigger value="Upload">Upload</TabsTrigger>
-          <TabsTrigger value="Generate">Generate</TabsTrigger>
-        </TabsList>
-        <TabsContent value="Upload" className="m-0 p-0">
-          <div
-            className="flex h-40 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-[2px] border-dashed border-input transition hover:border-muted-foreground"
-            onClick={() => imageRef?.current?.click()}
-          >
-            <Input
-              type="file"
-              className="hidden"
-              ref={imageRef}
-              onChange={(e) => uploadImage(e)}
-            />
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              {!isImageLoading ? (
-                <CloudUpload className="h-6 w-6" />
-              ) : (
-                <LoadingSpinner className="h-6 w-6" />
-              )}
-            </div>
-            <div className="flex flex-col items-center gap-2 text-sm">
-              <h2 className="text-primary">Click to upload</h2>
-              <p className="text-muted-foreground">
-                SVG, PNG, JPG, or GIF (max. 1080x1080px)
-              </p>
-            </div>
-          </div>
-        </TabsContent>
-        <TabsContent value="Generate" className="m-0 space-y-6 p-0">
-          <div className="space-y-2">
-            <Label className="">AI Thumbnail Prompt</Label>
-            <Textarea
-              className=""
-              placeholder="Provide text to generate thumbnail"
-              rows={5}
-              value={imagePrompt}
-              onChange={(e) => setImagePrompt(e.target.value)}
-            />
-          </div>
-          <div className="w-full">
-            <Button
-              type="button"
-              className=""
-              onClick={generateImage}
-              disabled={isGenerating}
-              variant={"primary_opaque"}
-            >
-              {isGenerating ? (
-                <>
-                  Generating
-                  <LoadingSpinner className="ml-2" />
-                </>
-              ) : (
-                "Generate"
-              )}
-            </Button>
-          </div>
-        </TabsContent>
-      </Tabs> */}
-
-      {image && (
-        <div className="group relative w-fit">
+      {imageUrl && imageStorageId ? (
+        <div className="group relative w-fit space-y-6">
           <Image
-            src={image}
+            src={imageUrl}
             width={200}
             height={200}
             className="relative rounded-lg"
@@ -242,21 +157,44 @@ export const GenerateThumbnail = ({
           />
 
           <Button
-            variant={"destructive"}
-            className="absolute right-0 top-0 z-20 flex h-8 w-8 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full p-0 opacity-0 transition hover:opacity-100 group-hover:opacity-100"
+            variant={"outline"}
+            className=""
             onClick={handleDeleteThumbnail}
             disabled={isDeletingThumbnail}
             type="button"
           >
             {isDeletingThumbnail ? (
-              <LoadingSpinner />
+              <LoadingSpinner className="mr-2 h-4 w-4 text-inherit" />
             ) : (
-              <>
-                <Trash2 className="h-4 w-4 text-white" />
-                <span className="sr-only">Delete thumbnail</span>
-              </>
+              <Pencil className="mr-2 h-4 w-4" />
             )}
+            Change
           </Button>
+        </div>
+      ) : (
+        <div
+          className="flex h-40 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-[2px] border-dashed border-input transition hover:border-muted-foreground"
+          onClick={() => imageRef?.current?.click()}
+        >
+          <Input
+            type="file"
+            className="hidden"
+            ref={imageRef}
+            onChange={(e) => uploadImage(e)}
+          />
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            {!isImageLoading ? (
+              <CloudUpload className="h-6 w-6" />
+            ) : (
+              <LoadingSpinner className="h-6 w-6" />
+            )}
+          </div>
+          <div className="flex flex-col items-center gap-2 text-sm">
+            <h2 className="text-primary">Click to upload</h2>
+            <p className="text-muted-foreground">
+              SVG, PNG, JPG, or GIF (max. 1080x1080px)
+            </p>
+          </div>
         </div>
       )}
     </div>

@@ -126,7 +126,7 @@ const PodcastPlayer = () => {
           className="h-1 w-full rounded-none"
           max={duration > 0 ? duration : 100}
         />
-        <section className="flex h-[120px] w-full items-center justify-between bg-background/50 px-4 backdrop-blur-sm max-md:justify-center max-md:gap-4 md:px-12">
+        <section className="relative flex h-[120px] w-full items-center justify-between gap-8 bg-background/50 px-4 backdrop-blur-sm max-md:justify-center max-md:gap-4 md:px-12">
           <audio
             ref={audioRef}
             src={audio?.audioUrl}
@@ -134,17 +134,20 @@ const PodcastPlayer = () => {
             onLoadedMetadata={handleLoadedMetadata}
             onEnded={handleAudioEnded}
           />
-          <div className="flex items-center gap-4 max-md:hidden">
-            <Link href={`/podcast/${audio?.podcastId}`}>
+          <div className="flex w-full max-w-sm flex-grow items-center gap-4">
+            <Link
+              href={`/podcast/${audio?.podcastId}`}
+              className="md:flex-shrink-0"
+            >
               <Image
                 src={audio?.imageUrl! || "/logo.svg"}
-                width={48}
-                height={48}
+                width={96}
+                height={96}
                 alt="logo"
-                className="aspect-square rounded-md object-cover object-center"
+                className="aspect-square w-10 rounded-md object-cover object-center md:w-14"
               />
             </Link>
-            <div className="flex w-[160px] flex-col">
+            <div className="hidden flex-col truncate md:flex">
               <h2 className="truncate font-semibold">{audio?.title}</h2>
               <p className="text-muted-foreground">{audio?.author}</p>
             </div>
@@ -188,7 +191,7 @@ const PodcastPlayer = () => {
               <TooltipContent>Forward 5 seconds</TooltipContent>
             </Tooltip>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex w-full max-w-sm items-center justify-end gap-6 md:flex-grow">
             {isMuted ? (
               <Tooltip>
                 <TooltipTrigger>

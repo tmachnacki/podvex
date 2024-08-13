@@ -10,7 +10,7 @@ import { useAudio } from "@/providers/audio-provider";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/loading-spinner";
-import { BookmarkMinus, BookmarkPlus, Play } from "lucide-react";
+import { AudioLines, BookmarkMinus, BookmarkPlus, Play } from "lucide-react";
 import Link from "next/link";
 import { useUpdateViews } from "@/hooks/use-update-views";
 
@@ -20,6 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useUpdateHistory } from "@/hooks/use-update-history";
 
 export interface PodcastDetailPlayerProps {
   audioUrl: string;
@@ -54,7 +55,7 @@ export const PodcastDetailPlayer = ({
   audioDuration,
   userId,
 }: PodcastDetailPlayerProps) => {
-  const { setAudio } = useAudio();
+  const { audio, setAudio } = useAudio();
 
   const userHasSaved = useQuery(api.users.getUserById, {
     clerkId: userId,
@@ -69,6 +70,7 @@ export const PodcastDetailPlayer = ({
   const [canIncreaseViews, setCanIncreaseViews] = useState(true);
 
   const { updateViews } = useUpdateViews();
+  const { updateHistory } = useUpdateHistory();
 
   const handlePlay = () => {
     setAudio({
@@ -83,6 +85,8 @@ export const PodcastDetailPlayer = ({
       updateViews({ podcastId });
       setCanIncreaseViews(false);
     }
+
+    updateHistory({ userId: userId, podcastId });
   };
 
   const handleSavePodcast = async () => {
@@ -119,8 +123,10 @@ export const PodcastDetailPlayer = ({
         <div className="relative aspect-square h-60 w-60 shrink-0 rounded-xl bg-transparent">
           <Image
             src={imageUrl}
-            fill
-            sizes="240"
+            width={400}
+            height={400}
+            // fill
+            // sizes="240"
             alt="Podcast thumbnail"
             className="absolute inset-0 z-20 aspect-square h-full w-full rounded-xl object-cover object-center"
           />
@@ -160,13 +166,20 @@ export const PodcastDetailPlayer = ({
           </article>
 
           <div className="flex items-center gap-2">
-            <Button
-              onClick={handlePlay}
-              className="w-fit shadow-xl shadow-primary/30 transition-transform hover:scale-[102%] md:hover:scale-[103%]"
-            >
-              <Play className="mr-2 h-4 w-4" />
-              Play Podcast
-            </Button>
+            {audio?.podcastId === podcastId ? (
+              <span className="flex h-10 cursor-default items-center justify-center px-2 font-semibold text-foreground">
+                <AudioLines className="mr-2 h-4 w-4 animate-pulse text-primary" />
+                {`Now playing`}
+              </span>
+            ) : (
+              <Button
+                onClick={handlePlay}
+                className="w-fit shadow-xl shadow-primary/30 transition-transform hover:scale-[102%] md:hover:scale-[103%]"
+              >
+                <Play className="mr-2 h-4 w-4" />
+                Play Podcast
+              </Button>
+            )}
 
             {userHasSaved !== undefined && (
               <TooltipProvider delayDuration={500}>

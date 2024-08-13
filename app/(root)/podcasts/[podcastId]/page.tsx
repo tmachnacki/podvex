@@ -15,6 +15,7 @@ import {
   MoreVertical,
   Trash2,
   ExternalLink,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
@@ -37,9 +38,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { PodcastGrid } from "@/components/podcast-grid";
+import { EditPodcast } from "./edit-podcast";
+import Link from "next/link";
 
 export default function PodcastDetails({
   params: { podcastId },
@@ -48,11 +52,15 @@ export default function PodcastDetails({
 }) {
   const router = useRouter();
   const { user } = useUser();
+
+  const [editOpen, setEditOpen] = useState(false);
+
   const [isDeleting, setIsDeleting] = useState(false);
   const deletePodcast = useMutation(api.podcasts.deletePodcast);
+  const deletePodcastHistory = useMutation(api.history.deletePodcastHistory);
   const increaseViews = useMutation(api.podcasts.updatePodcastViews);
   const podcast = useQuery(api.podcasts.getPodcastById, { podcastId });
-  const similarPodcasts = useQuery(api.podcasts.getPodcastByVoiceType, {
+  const similarPodcasts = useQuery(api.podcasts.getMoreFromAuthor, {
     podcastId,
   });
 
@@ -62,8 +70,11 @@ export default function PodcastDetails({
     if (!podcastId || !podcast) {
       return toast.error("Attempteed to delete podcast with missing arguments");
     }
+    if (!isOwner) return toast.error("You are not the owner of this podcast");
+
     try {
       setIsDeleting(true);
+      await deletePodcastHistory({ podcastId });
       await deletePodcast({
         podcastId,
         imageStorageId: podcast?.imageStorageId,
@@ -120,11 +131,16 @@ export default function PodcastDetails({
                   <ExternalLink className="mr-2 h-4 w-4" />
                   Share link
                 </DropdownMenuItem>
-                {isOwner && (
+                {isOwner && podcast && (
                   <>
+                    <DropdownMenuItem onClick={() => setEditOpen(true)}>
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Edit
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
+
                     <DialogTrigger asChild>
-                      <DropdownMenuItem className="">
+                      <DropdownMenuItem className="focus:bg-destructive/10 focus:text-destructive">
                         <Trash2 className="mr-2 h-4 w-4" />
                         Delete
                       </DropdownMenuItem>
@@ -134,30 +150,45 @@ export default function PodcastDetails({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Delete Podcast?</DialogTitle>
-                <DialogDescription>
-                  Are your sure you want to delete this podcast and all its
-                  data? This action cannot be undone.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button variant={"outline"}>Cancel</Button>
-                </DialogClose>
+            {isOwner && podcast && (
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Delete Podcast?</DialogTitle>
+                  <DialogDescription>
+                    Are your sure you want to delete this podcast and all its
+                    data? This action cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button variant={"outline"}>Cancel</Button>
+                  </DialogClose>
 
-                <Button
-                  variant={"destructive"}
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                >
-                  Delete
-                  {isDeleting && <LoadingSpinner className="ml-2" />}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
+                  <Button
+                    variant={"destructive"}
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                  >
+                    Delete
+                    {isDeleting && <LoadingSpinner className="ml-2" />}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            )}
           </Dialog>
+
+          {isOwner && podcast && (
+            <EditPodcast
+              podcastId={podcastId}
+              podcastTitle={podcast.podcastTitle}
+              podcastDescription={podcast.podcastDescription}
+              podcastImageUrl={podcast.imageUrl}
+              userId={user.id}
+              authorId={podcast.authorId}
+              open={editOpen}
+              setOpen={setEditOpen}
+            />
+          )}
         </div>
       </div>
 
@@ -209,7 +240,15 @@ export default function PodcastDetails({
       <Separator orientation="horizontal" />
 
       <section className="mt-8 flex flex-col gap-6">
-        <h1 className="font-semibold">You May Also Like</h1>
+        <h1 className="font-semibold text-muted-foreground">
+          More from
+          <Link
+            href={`/profile/${podcast?.authorId}`}
+            className="ml-2 text-foreground hover:underline"
+          >
+            {`${podcast?.author}`}
+          </Link>
+        </h1>
 
         {similarPodcasts && similarPodcasts.length > 0 ? (
           <PodcastGrid>

@@ -14,7 +14,7 @@ import { useUploadFiles } from "@xixixao/uploadstuff/react";
 import { LoadingSpinner } from "../../../../components/loading-spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { CloudUpload, Sparkles } from "lucide-react";
+import { CloudUpload, Pencil, Sparkles } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -31,14 +31,18 @@ export interface GeneratePodcastProps {
   >;
   voice: string | null;
   setVoice: React.Dispatch<React.SetStateAction<string | null>>;
-  setAudio: React.Dispatch<React.SetStateAction<string>>;
-  audio: string;
+  setAudioUrl: React.Dispatch<React.SetStateAction<string>>;
+  audioUrl: string;
+  audioStorageId: Id<"_storage"> | null;
   setAudioStorageId: React.Dispatch<
     React.SetStateAction<Id<"_storage"> | null>
   >;
   voicePrompt: string;
   setVoicePrompt: React.Dispatch<React.SetStateAction<string>>;
   setAudioDuration: React.Dispatch<React.SetStateAction<number>>;
+  isDeletingAudio: boolean;
+  setIsDeletingAudio: React.Dispatch<React.SetStateAction<boolean>>;
+  handleDeleteAudio: () => Promise<string | number | undefined>;
 }
 
 export const GeneratePodcast = ({
@@ -46,12 +50,16 @@ export const GeneratePodcast = ({
   setAudioMediaMethod,
   voice,
   setVoice,
-  setAudio,
-  audio,
+  setAudioUrl,
+  audioUrl,
+  audioStorageId,
   setAudioStorageId,
   voicePrompt,
   setVoicePrompt,
   setAudioDuration,
+  isDeletingAudio,
+  setIsDeletingAudio,
+  handleDeleteAudio,
 }: GeneratePodcastProps) => {
   const [isAudioUploading, setIsAudioUploading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -70,7 +78,7 @@ export const GeneratePodcast = ({
 
   const handleAudio = async (blob: Blob, fileName: string) => {
     setIsAudioUploading(true);
-    setAudio("");
+    setAudioUrl("");
 
     try {
       const file = new File([blob], fileName, { type: "audio/mpeg" });
@@ -80,8 +88,8 @@ export const GeneratePodcast = ({
 
       setAudioStorageId(storageId);
 
-      const imageUrl = await getAudioUrl({ storageId });
-      setAudio(imageUrl!);
+      const newAudioUrl = await getAudioUrl({ storageId });
+      setAudioUrl(newAudioUrl!);
       setIsAudioUploading(false);
       toast("Audio uploaded successfully");
     } catch (error) {
@@ -143,120 +151,135 @@ export const GeneratePodcast = ({
 
   return (
     <div className="space-y-4 pb-4">
-      <Tabs
-        defaultValue="Upload"
-        className="w-full"
-        onValueChange={(value) =>
-          setAudioMediaMethod(value as "Upload" | "Generate")
-        }
-      >
-        <TabsList className="mb-4 dark:bg-neutral-900">
-          <TabsTrigger value="Upload">Upload</TabsTrigger>
-          <TabsTrigger value="Generate">
-            <span className="bg-gradient-to-r from-fuchsia-500 to-primary bg-clip-text text-transparent">
-              Generate
-            </span>
-            <Sparkles className="ml-2 h-4 w-4 text-primary" />
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="Upload" className="m-0 p-0">
-          <div
-            className="flex h-40 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-[2px] border-dashed border-input transition hover:border-muted-foreground"
-            onClick={() => audioInputRef?.current?.click()}
+      {audioUrl ? (
+        <div className="space-y-6">
+          <audio
+            controls
+            src={audioUrl}
+            autoPlay
+            className="pt-2"
+            onLoadedMetadata={(e) => setAudioDuration(e.currentTarget.duration)}
+          />
+
+          <Button
+            variant={"outline"}
+            onClick={handleDeleteAudio}
+            disabled={isDeletingAudio}
           >
-            <Input
-              type="file"
-              className="hidden"
-              ref={audioInputRef}
-              onChange={(e) => uploadAudio(e)}
-            />
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              {!isAudioUploading ? (
-                <CloudUpload className="h-6 w-6" />
-              ) : (
-                <LoadingSpinner className="h-6 w-6" />
-              )}
-            </div>
-            <div className="flex flex-col items-center gap-2 text-sm">
-              <h2 className="text-primary">Click to upload</h2>
-              <p className="text-muted-foreground">MP3</p>
-            </div>
-          </div>
-        </TabsContent>
-        <TabsContent value="Generate" className="m-0 space-y-6 p-0">
-          <div className="space-y-2">
-            <Label>AI Voice</Label>
-            <Select onValueChange={setVoice} value={voice ?? undefined}>
-              <SelectTrigger
-                className={`w-full max-w-[200px] ${voice === null ? "text-muted-foreground" : "text-foreground"}`}
-              >
-                <SelectValue
-                  placeholder="Select AI voice type"
-                  className={``}
-                />
-              </SelectTrigger>
-
-              <SelectContent className="">
-                {aiVoices.map((voice) => (
-                  <SelectItem
-                    key={voice.value}
-                    value={voice.value}
-                    className=""
-                  >
-                    {voice.value}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-              {voice && (
-                <audio
-                  src={`/${voice}.mp3`}
-                  ref={voiceRef}
-                  className="hidden"
-                />
-              )}
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="">AI Audio Prompt</Label>
-            <Textarea
-              className=""
-              placeholder="Provide text to generate audio"
-              rows={5}
-              value={voicePrompt}
-              onChange={(e) => setVoicePrompt(e.target.value)}
-              maxLength={1000}
-            />
-          </div>
-          <div className="w-full">
-            <Button
-              type="button"
-              className=""
-              onClick={generateAudio}
-              disabled={isGenerating}
-              variant={"primary_opaque"}
+            {isDeletingAudio ? (
+              <LoadingSpinner className="mr-2 h-4 w-4 text-inherit" />
+            ) : (
+              <Pencil className="mr-2 h-4 w-4" />
+            )}
+            Change
+          </Button>
+        </div>
+      ) : (
+        <Tabs
+          defaultValue="Upload"
+          className="w-full"
+          onValueChange={(value) =>
+            setAudioMediaMethod(value as "Upload" | "Generate")
+          }
+        >
+          <TabsList className="mb-4 dark:bg-neutral-900">
+            <TabsTrigger value="Upload">Upload</TabsTrigger>
+            <TabsTrigger value="Generate">
+              <span className="bg-gradient-to-r from-fuchsia-500 to-primary bg-clip-text text-transparent">
+                Generate
+              </span>
+              <Sparkles className="ml-2 h-4 w-4 text-primary" />
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="Upload" className="m-0 p-0">
+            <div
+              className="flex h-40 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-[2px] border-dashed border-input transition hover:border-muted-foreground"
+              onClick={() => audioInputRef?.current?.click()}
             >
-              {isGenerating ? (
-                <>
-                  Generating
-                  <LoadingSpinner className="ml-2" />
-                </>
-              ) : (
-                "Generate"
-              )}
-            </Button>
-          </div>
-        </TabsContent>
-      </Tabs>
+              <Input
+                type="file"
+                className="hidden"
+                ref={audioInputRef}
+                onChange={(e) => uploadAudio(e)}
+              />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                {!isAudioUploading ? (
+                  <CloudUpload className="h-6 w-6" />
+                ) : (
+                  <LoadingSpinner className="h-6 w-6" />
+                )}
+              </div>
+              <div className="flex flex-col items-center gap-2 text-sm">
+                <h2 className="text-primary">Click to upload</h2>
+                <p className="text-muted-foreground">MP3</p>
+              </div>
+            </div>
+          </TabsContent>
+          <TabsContent value="Generate" className="m-0 space-y-6 p-0">
+            <div className="space-y-2">
+              <Label>AI Voice</Label>
+              <Select onValueChange={setVoice} value={voice ?? undefined}>
+                <SelectTrigger
+                  className={`w-full max-w-[200px] ${voice === null ? "text-muted-foreground" : "text-foreground"}`}
+                >
+                  <SelectValue
+                    placeholder="Select AI voice type"
+                    className={``}
+                  />
+                </SelectTrigger>
 
-      {audio && (
-        <audio
-          controls
-          src={audio}
-          autoPlay
-          className="pt-2"
-          onLoadedMetadata={(e) => setAudioDuration(e.currentTarget.duration)}
-        />
+                <SelectContent className="">
+                  {aiVoices.map((voice) => (
+                    <SelectItem
+                      key={voice.value}
+                      value={voice.value}
+                      className=""
+                    >
+                      {voice.value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+                {voice && (
+                  <audio
+                    src={`/${voice}.mp3`}
+                    ref={voiceRef}
+                    className="hidden"
+                  />
+                )}
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="">AI Audio Prompt</Label>
+              <Textarea
+                className=""
+                placeholder="Provide text to generate audio"
+                rows={5}
+                value={voicePrompt}
+                onChange={(e) => setVoicePrompt(e.target.value)}
+                maxLength={1000}
+              />
+            </div>
+            <div className="w-full">
+              <Button
+                type="button"
+                className=""
+                onClick={generateAudio}
+                disabled={isGenerating}
+                variant={"primary_opaque"}
+              >
+                {isGenerating ? (
+                  <>
+                    Generating
+                    <LoadingSpinner className="ml-2" />
+                  </>
+                ) : (
+                  "Generate"
+                )}
+              </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );

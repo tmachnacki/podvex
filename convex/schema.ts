@@ -18,7 +18,6 @@ export default defineSchema({
     voiceType: v.optional(v.string()),
     audioDuration: v.number(),
     views: v.number(),
-    usersSaved: v.optional(v.array(v.id("users"))),
   })
     .searchIndex("search_author", { searchField: "author" })
     .searchIndex("search_title", { searchField: "podcastTitle" })
@@ -37,4 +36,11 @@ export default defineSchema({
     .index("by_clerkId", ["clerkId"])
     .index("by_priceId", ["priceId"])
     .index("by_stripeCustomerId", ["stripeCustomerId"]),
+  history: defineTable({
+    user: v.id("users"),
+    podcastId: v.id("podcasts"),
+    listenedAt: v.number(),
+  })
+    .index("by_user", ["user"])
+    .index("by_podcastId", ["podcastId"]),
 });

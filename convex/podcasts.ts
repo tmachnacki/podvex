@@ -1,6 +1,8 @@
 import { ConvexError, v } from "convex/values";
 
 import { action, mutation, query } from "./_generated/server";
+import { api, internal } from "./_generated/api";
+import { getUserById } from "./users";
 
 export const createPodcast = mutation({
   args: {
@@ -53,6 +55,37 @@ export const createPodcast = mutation({
   },
 });
 
+// update podcast details
+export const updatePodcast = mutation({
+  args: {
+    podcastId: v.id("podcasts"),
+    podcastTitle: v.string(),
+    podcastDescription: v.string(),
+    clerkId: v.string(),
+    authorId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    if (args.clerkId !== args.authorId) throw new ConvexError("Unauthorized");
+
+    const identity = ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new ConvexError("User not authenticated");
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
+      .first();
+
+    if (!user) throw new ConvexError("User not found");
+
+    return await ctx.db.patch(args.podcastId, {
+      podcastTitle: args.podcastTitle,
+      podcastDescription: args.podcastDescription,
+    });
+  },
+});
+
 // return file storage url
 export const getUrl = mutation({
   args: {
@@ -84,6 +117,26 @@ export const getPodcastByVoiceType = query({
         ),
       )
       .collect();
+  },
+});
+
+export const getMoreFromAuthor = query({
+  args: { podcastId: v.id("podcasts") },
+  handler: async (ctx, args) => {
+    const podcast = await ctx.db.get(args.podcastId);
+    if (!podcast) return undefined;
+
+    const podcasts = await ctx.db
+      .query("podcasts")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("authorId"), podcast.authorId),
+          q.neq(q.field("_id"), args.podcastId),
+        ),
+      )
+      .collect();
+
+    return podcasts;
   },
 });
 
@@ -255,5 +308,39 @@ export const deletePodcastAudio = mutation({
   },
   handler: async (ctx, args) => {
     await ctx.storage.delete(args.audioStorageId);
+  },
+});
+
+export const getPodcastHistory = query({
+  args: { userId: v.optional(v.string()), limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    if (!args.userId) return undefined;
+    const identity = ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new ConvexError("User not authenticated");
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.userId!))
+      .first();
+
+    if (!user) {
+      throw new ConvexError("User not found");
+    }
+
+    const userhistory = await ctx.db
+      .query("history")
+      .withIndex("by_user", (q) => q.eq("user", user._id))
+      .filter((q) => q.eq(q.field("user"), user._id))
+      .collect();
+
+    const limit = args.limit ?? 12;
+    return Promise.all(
+      userhistory
+        .sort((a, b) => b.listenedAt - a.listenedAt)
+        .slice(0, limit)
+        .map(async (p) => await ctx.db.get(p.podcastId)),
+    );
   },
 });

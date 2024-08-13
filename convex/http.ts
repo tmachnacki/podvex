@@ -2,7 +2,7 @@ import type { WebhookEvent } from "@clerk/nextjs/server";
 import { httpRouter } from "convex/server";
 import { Webhook } from "svix";
 
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { httpAction } from "./_generated/server";
 
 const validateRequest = async (
@@ -46,6 +46,9 @@ const handleClerkWebhook = httpAction(async (ctx, request) => {
       });
       break;
     case "user.deleted":
+      await ctx.runMutation(internal.history.deleteUserHistory, {
+        userId: event.data.id as string,
+      });
       await ctx.runMutation(internal.users.deleteUser, {
         clerkId: event.data.id as string,
       });

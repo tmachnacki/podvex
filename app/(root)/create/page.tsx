@@ -14,6 +14,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -30,8 +38,14 @@ import { LoadingSpinner } from "@/components/loading-spinner";
 import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
-  podcastTitle: z.string().min(2),
-  podcastDescription: z.string().min(2),
+  podcastTitle: z
+    .string()
+    .min(1, { message: "Title is required" })
+    .max(100, { message: "Max length is 100 characters" }),
+  podcastDescription: z
+    .string()
+    .min(1, { message: "Description is required" })
+    .max(2200, { message: "Max length is 2200 characters" }),
 });
 
 export default function CreatePodcast() {
@@ -44,17 +58,24 @@ export default function CreatePodcast() {
     null,
   );
   const [imageUrl, setImageUrl] = useState("");
+  const [isDeletingThumbnail, setIsDeletingThumbnail] = useState(false);
+  const deletePodcastThumbnail = useMutation(
+    api.podcasts.deletePodcastThumbnail,
+  );
 
   const [audioUrl, setAudioUrl] = useState("");
+  const [isDeletingAudio, setIsDeletingAudio] = useState(false);
   const [audioStorageId, setAudioStorageId] = useState<Id<"_storage"> | null>(
     null,
   );
+  const deletePodcastAudio = useMutation(api.podcasts.deletePodcastAudio);
   const [audioDuration, setAudioDuration] = useState(0);
 
   const [voice, setVoice] = useState<string | null>(null);
   const [voicePrompt, setVoicePrompt] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
 
   const createPodcast = useMutation(api.podcasts.createPodcast);
 
@@ -65,6 +86,59 @@ export default function CreatePodcast() {
       podcastDescription: "",
     },
   });
+
+  const handleDeleteThumbnail = async () => {
+    if (!imageStorageId) return toast.error("image storage not provided");
+    try {
+      setIsDeletingThumbnail(true);
+      await deletePodcastThumbnail({ imageStorageId });
+      setImageStorageId(null);
+      setImageUrl("");
+
+      setIsDeletingThumbnail(false);
+      toast("Thumbnail deleted");
+    } catch (error) {
+      toast.error("Error deleting thumbnail");
+      console.error(error);
+      setIsDeletingThumbnail(false);
+    }
+  };
+
+  const handleDeleteAudio = async () => {
+    if (!audioStorageId) return toast.error("audio storage not provided");
+    try {
+      setIsDeletingAudio(true);
+      await deletePodcastAudio({ audioStorageId });
+      setAudioStorageId(null);
+      setAudioUrl("");
+
+      setIsDeletingAudio(false);
+      toast("Audio deleted");
+    } catch (error) {
+      toast.error("Error deleting audio");
+      console.error(error);
+      setIsDeletingAudio(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    try {
+      if (audioStorageId && audioUrl) {
+        await handleDeleteAudio();
+      }
+      if (imageStorageId && imageUrl) {
+        await handleDeleteThumbnail();
+      }
+      router.push("/");
+    } catch (error) {
+      console.error(error);
+      toast.error("Error cancelling podcast");
+    }
+  };
+
+  const isFormEmpty = (titleField: string, descriptionField: string) => {
+    return !titleField || !descriptionField;
+  };
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     try {
@@ -124,11 +198,7 @@ export default function CreatePodcast() {
                 <FormItem className="">
                   <FormLabel className="">Title</FormLabel>
                   <FormControl>
-                    <Input
-                      className=""
-                      placeholder="Joe Rogan Experience"
-                      {...field}
-                    />
+                    <Input className="" placeholder="Title" {...field} />
                   </FormControl>
                   <FormMessage className="" />
                 </FormItem>
@@ -144,7 +214,7 @@ export default function CreatePodcast() {
                   <FormControl>
                     <Textarea
                       className=""
-                      placeholder="Write a short podcast description"
+                      placeholder="Tell listeners about your podcast"
                       {...field}
                     />
                   </FormControl>
@@ -164,14 +234,18 @@ export default function CreatePodcast() {
             <GeneratePodcast
               audioMediaMethod={audioMediaMethod}
               setAudioMediaMethod={setAudioMediaMethod}
+              audioStorageId={audioStorageId}
               setAudioStorageId={setAudioStorageId}
-              setAudio={setAudioUrl}
+              setAudioUrl={setAudioUrl}
               voice={voice!}
               setVoice={setVoice}
-              audio={audioUrl}
+              audioUrl={audioUrl}
               voicePrompt={voicePrompt}
               setVoicePrompt={setVoicePrompt}
               setAudioDuration={setAudioDuration}
+              isDeletingAudio={isDeletingAudio}
+              setIsDeletingAudio={setIsDeletingAudio}
+              handleDeleteAudio={handleDeleteAudio}
             />
 
             <Separator orientation="horizontal" />
@@ -184,12 +258,15 @@ export default function CreatePodcast() {
             </div>
 
             <GenerateThumbnail
-              setImage={setImageUrl}
+              setImageUrl={setImageUrl}
               setImageStorageId={setImageStorageId}
               imageStorageId={imageStorageId}
-              image={imageUrl}
+              imageUrl={imageUrl}
               imagePrompt={imagePrompt}
               setImagePrompt={setImagePrompt}
+              handleDeleteThumbnail={handleDeleteThumbnail}
+              isDeletingThumbnail={isDeletingThumbnail}
+              setIsDeletingThumbnail={setIsDeletingThumbnail}
             />
 
             <Separator orientation="horizontal" />
@@ -200,10 +277,15 @@ export default function CreatePodcast() {
                 variant={"outline"}
                 onClick={() => {
                   if (
-                    window.confirm(
-                      "Are you sure you want to abandon this podcast?",
-                    )
+                    audioUrl ||
+                    imageUrl ||
+                    voice ||
+                    voicePrompt ||
+                    form.getValues().podcastDescription !== "" ||
+                    form.getValues().podcastTitle !== ""
                   ) {
+                    setCancelOpen(true);
+                  } else {
                     router.push("/");
                   }
                 }}
@@ -229,6 +311,33 @@ export default function CreatePodcast() {
           </div>
         </form>
       </Form>
+
+      <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to abandon this podcast?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button
+              variant="outline"
+              onClick={handleCancel}
+              disabled={isDeletingAudio || isDeletingThumbnail || isSubmitting}
+            >
+              Leave
+              {isDeletingAudio ||
+                (isDeletingThumbnail && (
+                  <LoadingSpinner className="ml-2 text-inherit" />
+                ))}
+            </Button>
+            <Button variant="default" onClick={() => setCancelOpen(false)}>
+              Continue
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }

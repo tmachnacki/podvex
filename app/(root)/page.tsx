@@ -5,10 +5,14 @@ import { api } from "@/convex/_generated/api";
 import { PodcastGrid } from "@/components/podcast-grid";
 import { PodcastGridLoader } from "@/components/podcast-grid-skeleton";
 import { useAuth } from "@clerk/nextjs";
+import Link from "next/link";
 
 export default function Home() {
-  const trendingPodcasts = useQuery(api.podcasts.getTrendingPodcasts);
   const { isLoaded, isSignedIn, userId } = useAuth();
+  const trendingPodcasts = useQuery(api.podcasts.getTrendingPodcasts);
+  const podcastHistory = useQuery(api.podcasts.getPodcastHistory, {
+    userId: userId ? userId : undefined,
+  });
 
   const isLoading = !trendingPodcasts || !isLoaded || !userId;
 
@@ -47,6 +51,43 @@ export default function Home() {
           <PodcastGridLoader />
         )}
       </section>
+
+      {podcastHistory && podcastHistory.length > 0 && (
+        <section className="flex flex-col space-y-8">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold">Jump Back In</h2>
+            <Link
+              href={`/history/${userId}`}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              See History
+            </Link>
+          </div>
+          {trendingPodcasts && userId && isLoaded ? (
+            <PodcastGrid>
+              {podcastHistory?.map((podcast) => {
+                if (!podcast) return;
+
+                return (
+                  <PodcastCard
+                    key={podcast?._id}
+                    imageUrl={podcast?.imageUrl as string}
+                    title={podcast?.podcastTitle}
+                    description={podcast.podcastDescription}
+                    podcastId={podcast?._id}
+                    audioUrl={podcast?.audioUrl}
+                    author={podcast?.author}
+                    authorId={podcast?.authorId}
+                    currentUserId={userId}
+                  />
+                );
+              })}
+            </PodcastGrid>
+          ) : (
+            <PodcastGridLoader />
+          )}
+        </section>
+      )}
     </div>
   );
 }
