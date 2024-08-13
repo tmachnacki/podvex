@@ -155,8 +155,12 @@ const PodcastPlayer = () => {
           <div className="flex cursor-pointer items-center justify-center gap-3 md:gap-6">
             <Tooltip>
               <TooltipTrigger>
-                <div className="flex cursor-pointer items-center gap-2 text-muted-foreground hover:text-foreground">
-                  <Rewind className="h-5 w-5" onClick={rewind} />
+                <div
+                  className="flex cursor-pointer items-center gap-2 text-muted-foreground hover:text-foreground"
+                  role="button"
+                  onClick={() => rewind()}
+                >
+                  <Rewind className="h-5 w-5" />
                   <span className="">-5</span>
                 </div>
               </TooltipTrigger>
@@ -183,9 +187,13 @@ const PodcastPlayer = () => {
 
             <Tooltip>
               <TooltipTrigger>
-                <div className="flex cursor-pointer items-center gap-2 text-muted-foreground hover:text-foreground">
+                <div
+                  className="flex cursor-pointer items-center gap-2 text-muted-foreground hover:text-foreground"
+                  role="button"
+                  onClick={() => forward()}
+                >
                   <span className="">+5</span>
-                  <FastForward className="h-5 w-5" onClick={rewind} />
+                  <FastForward className="h-5 w-5" />
                 </div>
               </TooltipTrigger>
               <TooltipContent>Forward 5 seconds</TooltipContent>

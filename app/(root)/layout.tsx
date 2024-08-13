@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import PodcastPlayer from "@/components/podcast-player";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ContentWrapper } from "./content-wrapper";
 
 export default function RootLayout({
   children,
@@ -47,7 +48,7 @@ export default function RootLayout({
                 </Link>
                 <MobileNav />
               </div>
-              <div className="flex flex-col pb-12">{children}</div>
+              <ContentWrapper>{children}</ContentWrapper>
             </div>
           </section>
           <ScrollBar />
