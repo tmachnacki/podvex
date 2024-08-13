@@ -19,13 +19,13 @@ const RightSidebar = () => {
   return (
     <ScrollArea
       className={cn(
-        "sticky right-0 top-0 h-screen w-[320px] border-l-[1px] border-border bg-neutral-50 dark:bg-neutral-900 max-xl:hidden",
+        "sticky right-0 top-0 h-screen flex-shrink-0 border-l-[1px] border-border bg-neutral-50 dark:bg-neutral-900 max-xl:hidden",
         audio?.audioUrl ? "h-[calc(100vh-124px)]" : "h-screen",
       )}
     >
       <section
         className={cn(
-          "flex w-full flex-col px-8 py-12 text-sm",
+          "flex w-[320px] flex-col px-8 py-12 text-sm",
           audio?.audioUrl ? "h-[calc(100vh-124px)]" : "h-screen",
         )}
       >

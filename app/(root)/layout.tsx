@@ -14,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <div className="relative flex h-screen flex-col overflow-y-hidden">
-      <main className="relative flex overflow-hidden">
+      <main className="relative flex overflow-y-hidden">
         <div
           aria-hidden="true"
           className="absolute -top-40 left-0 -z-10 transform-gpu overflow-hidden blur-3xl md:-top-80"
