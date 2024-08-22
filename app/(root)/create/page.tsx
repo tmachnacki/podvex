@@ -320,19 +320,18 @@ export default function CreatePodcast() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
+            <Button variant="outline" onClick={() => setCancelOpen(false)}>
+              No, Stay
+            </Button>
             <Button
-              variant="outline"
+              variant="default"
               onClick={handleCancel}
               disabled={isDeletingAudio || isDeletingThumbnail || isSubmitting}
             >
-              Leave
-              {isDeletingAudio ||
-                (isDeletingThumbnail && (
-                  <LoadingSpinner className="ml-2 text-inherit" />
-                ))}
-            </Button>
-            <Button variant="default" onClick={() => setCancelOpen(false)}>
-              Continue
+              Yes, Leave
+              {(isDeletingAudio || isDeletingThumbnail) && (
+                <LoadingSpinner className="ml-2 text-inherit" />
+              )}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
