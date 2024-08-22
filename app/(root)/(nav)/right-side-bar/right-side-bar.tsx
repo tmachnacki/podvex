@@ -25,8 +25,8 @@ const RightSidebar = () => {
     >
       <section
         className={cn(
-          "flex w-[320px] flex-col px-8 py-12 text-sm",
-          audio?.audioUrl ? "h-[calc(100vh-124px)]" : "h-screen",
+          "flex h-full w-[320px] flex-col px-8 py-12 text-sm",
+          // audio?.audioUrl ? "h-[calc(100vh-124px)]" : "h-screen",
         )}
       >
         <section className="space-y-2 pb-12">
@@ -36,7 +36,7 @@ const RightSidebar = () => {
 
           <LikeYouCarousel topCreators={topPodcasters!} />
         </section>
-        <section className="flex flex-col space-y-2 pt-12">
+        <section className="flex flex-col space-y-2">
           <header className="flex items-center justify-between">
             <h4 className="text-base font-semibold">Top creators</h4>
             {/* <Link

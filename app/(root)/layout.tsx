@@ -14,8 +14,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="relative flex h-screen flex-col overflow-y-hidden">
-      <main className="relative flex overflow-y-hidden">
+    <div
+      className="relative flex flex-col overflow-hidden"
+      style={{ height: "100dvh" }}
+    >
+      <main className="relative flex overflow-hidden">
         <div
           aria-hidden="true"
           className="absolute -top-40 left-0 -z-10 transform-gpu overflow-hidden blur-3xl md:-top-80"

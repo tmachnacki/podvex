@@ -53,7 +53,7 @@ const MobileNav = () => {
                 "flex h-screen w-full flex-col justify-between py-12",
               )}
             >
-              <div className="flex flex-col gap-4 px-4">
+              <div className="flex flex-col gap-4">
                 <Link
                   href="/"
                   className="flex cursor-pointer items-center px-4 pb-10"
