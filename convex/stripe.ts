@@ -19,7 +19,10 @@ export const pay = action({
       throw new ConvexError("you must be logged in to subscribe");
     }
 
-    const domain = process.env.HOSTING_URL ?? "http://localhost:3000";
+    const domain =
+      process.env.NODE_ENV === "production"
+        ? process.env.NEXT_PUBLIC_URL
+        : "http://localhost:3000";
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
       apiVersion: "2024-06-20",
     });
