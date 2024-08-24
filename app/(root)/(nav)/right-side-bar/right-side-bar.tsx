@@ -25,7 +25,7 @@ const RightSidebar = () => {
     >
       <section
         className={cn(
-          "flex h-full w-[320px] flex-col px-8 py-12 text-sm",
+          "flex h-full w-[270px] flex-col px-8 py-12 text-sm",
           // audio?.audioUrl ? "h-[calc(100vh-124px)]" : "h-screen",
         )}
       >
