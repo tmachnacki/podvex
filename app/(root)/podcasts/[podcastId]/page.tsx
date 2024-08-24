@@ -241,13 +241,19 @@ export default function PodcastDetails({
 
       <section className="mt-8 flex flex-col gap-6">
         <h1 className="font-semibold text-muted-foreground">
-          More from
-          <Link
-            href={`/profile/${podcast?.authorId}`}
-            className="ml-2 text-foreground hover:underline"
-          >
-            {`${podcast?.author}`}
-          </Link>
+          {isOwner ? (
+            "More by you"
+          ) : (
+            <>
+              {"More from"}
+              <Link
+                href={`/profile/${podcast?.authorId}`}
+                className="ml-2 text-foreground hover:underline"
+              >
+                {`${podcast?.author}`}
+              </Link>
+            </>
+          )}
         </h1>
 
         {similarPodcasts && similarPodcasts.length > 0 ? (
