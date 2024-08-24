@@ -27,7 +27,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatTime } from "@/lib/utils";
+import { formatTime, toTimeAgo } from "@/lib/utils";
 import { toast } from "sonner";
 import { useState } from "react";
 import { LoadingSpinner } from "@/components/loading-spinner";
@@ -170,7 +170,7 @@ export const PodcastRow = ({
         </div>
       </TableCell>
       <TableCell className="font-normal">
-        {lastPlayed && new Date(lastPlayed).toDateString()}
+        {lastPlayed && toTimeAgo(new Date(lastPlayed))}
       </TableCell>
       <TableCell className="">{formatTime(podcast.audioDuration)}</TableCell>
       <TableCell>

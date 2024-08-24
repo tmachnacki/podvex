@@ -10,7 +10,13 @@ import { useAudio } from "@/providers/audio-provider";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/loading-spinner";
-import { AudioLines, BookmarkMinus, BookmarkPlus, Play } from "lucide-react";
+import {
+  AudioLines,
+  BookmarkMinus,
+  BookmarkPlus,
+  Circle,
+  Play,
+} from "lucide-react";
 import Link from "next/link";
 import { useUpdateViews } from "@/hooks/use-update-views";
 
@@ -21,6 +27,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useUpdateHistory } from "@/hooks/use-update-history";
+import { toTimeAgo } from "@/lib/utils";
 
 export interface PodcastDetailPlayerProps {
   audioUrl: string;
@@ -113,7 +120,7 @@ export const PodcastDetailPlayer = ({
     }
   };
 
-  const timestamp = new Date(creationTime).toDateString();
+  const timestamp = toTimeAgo(new Date(creationTime));
 
   if (!imageUrl || !authorImageUrl) return <LoadingSpinner className="" />;
 
@@ -140,28 +147,23 @@ export const PodcastDetailPlayer = ({
         </div>
         <div className="flex w-full flex-col gap-12 max-md:items-center">
           <article className="flex flex-col gap-3">
-            <div className="flex">
-              <h1 className="mr-2 text-3xl font-bold">{podcastTitle}</h1>
-            </div>
-            <Link
-              className="flex w-fit cursor-pointer items-center gap-2"
-              href={`/profile/${authorId}`}
-            >
-              <Image
-                src={authorImageUrl}
-                width={32}
-                height={32}
-                alt="Caster icon"
-                className="aspect-square rounded-full object-cover"
-              />
-              <h2 className="text-base text-muted-foreground hover:underline">
-                {author}
-              </h2>
-            </Link>
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground/70">
-              {/* <p>{audioDuration}</p>
-              <Separator orientation="vertical" /> */}
-              <p>{timestamp}</p>
+            <h1 className="block text-3xl font-bold">{podcastTitle}</h1>
+            <div className="inline-flex items-center space-x-2">
+              <Link
+                className="inline-flex w-fit cursor-pointer items-center gap-2"
+                href={`/profile/${authorId}`}
+              >
+                <Image
+                  src={authorImageUrl}
+                  width={32}
+                  height={32}
+                  alt="Caster icon"
+                  className="aspect-square rounded-full object-cover"
+                />
+                <h2 className="text-base hover:underline">{author}</h2>
+              </Link>
+              <Circle className="h-1 w-1 shrink-0 fill-current text-muted-foreground" />
+              <p className="text-muted-foreground/70">{timestamp}</p>
             </div>
           </article>
 
