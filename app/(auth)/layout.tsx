@@ -1,13 +1,10 @@
-import { WavyBackground } from "@/components/aceternity/wavy-background";
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <main className="relative h-screen w-full overflow-hidden">
-      {/* <WavyBackground className="" containerClassName="absolute size-full" /> */}
+    <main className="relative h-dvh w-full overflow-x-hidden">
       <div
         aria-hidden="true"
         className="absolute -top-40 left-0 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"

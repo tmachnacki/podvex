@@ -14,10 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div
-      className="relative flex flex-col overflow-hidden"
-      style={{ height: "100dvh" }}
-    >
+    <div className="relative flex h-dvh flex-col overflow-hidden">
       <main className="relative flex overflow-hidden">
         <div
           aria-hidden="true"
@@ -34,7 +31,7 @@ export default function RootLayout({
 
         <LeftSideNav />
 
-        <ScrollArea className="min-h-screen flex-1">
+        <ScrollArea className="min-h-dvh flex-1">
           <section className="flex flex-1 flex-col px-4 sm:px-14">
             <div className="mx-auto flex w-full max-w-5xl flex-col max-sm:px-4">
               <div className="flex h-16 items-center justify-between border-b border-border md:hidden">

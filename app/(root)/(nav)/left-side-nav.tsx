@@ -41,14 +41,14 @@ const LeftSideNav = () => {
   return (
     <ScrollArea
       className={cn(
-        "sticky left-0 top-0 h-screen w-fit border-r-[1px] border-border bg-neutral-50 dark:bg-neutral-900 max-md:hidden lg:w-[270px]",
-        audio?.audioUrl ? "h-[calc(100vh-124px)]" : "h-screen",
+        "sticky left-0 top-0 h-dvh w-fit border-r-[1px] border-border bg-neutral-50 dark:bg-neutral-900 max-md:hidden lg:w-[270px]",
+        audio?.audioUrl ? "h-[calc(100dvh-124px)]" : "h-dvh",
       )}
     >
       <nav
         className={cn(
           "flex w-full flex-col justify-between pt-12",
-          audio?.audioUrl ? "h-[calc(100vh-124px)]" : "h-screen",
+          audio?.audioUrl ? "h-[calc(100dvh-124px)]" : "h-dvh",
         )}
       >
         <div className="flex flex-col gap-4 px-4">

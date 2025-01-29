@@ -19,15 +19,12 @@ const RightSidebar = () => {
   return (
     <ScrollArea
       className={cn(
-        "sticky right-0 top-0 h-screen flex-shrink-0 border-l-[1px] border-border bg-neutral-50 dark:bg-neutral-900 max-xl:hidden",
-        audio?.audioUrl ? "h-[calc(100vh-124px)]" : "h-screen",
+        "sticky right-0 top-0 flex-shrink-0 border-l-[1px] border-border bg-neutral-50 dark:bg-neutral-900 max-xl:hidden",
+        audio?.audioUrl ? "h-[calc(100dvh-124px)]" : "h-dvh",
       )}
     >
       <section
-        className={cn(
-          "flex h-full w-[270px] flex-col px-8 py-12 text-sm",
-          // audio?.audioUrl ? "h-[calc(100vh-124px)]" : "h-screen",
-        )}
+        className={cn("flex h-full w-[270px] flex-col px-8 py-12 text-sm")}
       >
         <section className="space-y-2 pb-12">
           <header className="flex items-center justify-between">
@@ -39,12 +36,6 @@ const RightSidebar = () => {
         <section className="flex flex-col space-y-2">
           <header className="flex items-center justify-between">
             <h4 className="text-base font-semibold">Top creators</h4>
-            {/* <Link
-              href={"/discover"}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              See All
-            </Link> */}
           </header>
           <ul className="">
             {topPodcasters?.slice(0, 4).map((podcaster) => (
