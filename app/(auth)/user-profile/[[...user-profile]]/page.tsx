@@ -5,8 +5,8 @@ import Link from "next/link";
 
 export default function UserProfilePage() {
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-12 px-4 pb-8">
-      <div className="flex w-full items-center justify-start border-b border-border pb-2 pt-8">
+    <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-12 px-4 py-12">
+      <div className="flex w-full items-center justify-start border-b border-border pb-2">
         <Button asChild size={"icon"} variant={"ghost"}>
           <Link href="/">
             <ArrowLeft className="h-4 w-4" />
