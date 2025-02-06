@@ -7,8 +7,8 @@ export function EnsureClerkData({
   children,
   loading,
 }: {
-  children: JSX.Element;
-  loading?: JSX.Element;
+  children: React.ReactNode;
+  loading?: React.ReactNode;
 }) {
   const [loginStatus, user] = useQuery(api.users.userLoginStatus) || [
     "Loading",
