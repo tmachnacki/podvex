@@ -5,21 +5,67 @@ import {
   internalQuery,
   mutation,
   query,
+  QueryCtx,
 } from "./_generated/server";
+import { Doc } from "./_generated/dataModel";
+
+/**
+ * Whether the current user is fully logged in, including having their information
+ * synced from Clerk via webhook.
+ *
+ * Like all Convex queries, errors on expired Clerk token.
+ */
+export const userLoginStatus = query(
+  async (
+    ctx,
+  ): Promise<
+    | ["No JWT Token", null]
+    | ["No Clerk User", null]
+    | ["Logged In", Doc<"users">]
+  > => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      // no JWT token, user hasn't completed login flow yet
+      return ["No JWT Token", null];
+    }
+    const user = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("clerkId"), identity.subject))
+      .unique();
+    if (user === null) {
+      // If Clerk has not told us about this user we're still waiting for the
+      // webhook notification.
+      return ["No Clerk User", null];
+    }
+    return ["Logged In", user];
+  },
+);
+
+async function getCurrentUser(ctx: QueryCtx): Promise<Doc<"users"> | null> {
+  const identity = await ctx.auth.getUserIdentity();
+  if (identity === null) {
+    return null;
+  }
+  return await ctx.db
+    .query("users")
+    .filter((q) => q.eq(q.field("clerkId"), identity.subject))
+    .unique();
+}
+
+export const currentUser = query((ctx: QueryCtx) => getCurrentUser(ctx));
 
 export const getUserById = query({
   args: { clerkId: v.string() },
   handler: async (ctx, args) => {
-    const user = await ctx.db
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      console.warn("No auth");
+      return null;
+    }
+    return await ctx.db
       .query("users")
       .filter((q) => q.eq(q.field("clerkId"), args.clerkId))
       .unique();
-
-    if (!user) {
-      throw new ConvexError("User not found");
-    }
-
-    return user;
   },
 });
 
@@ -79,6 +125,7 @@ export const updateUser = internalMutation({
     clerkId: v.string(),
     imageUrl: v.string(),
     email: v.string(),
+    name: v.string(),
   },
   async handler(ctx, args) {
     const user = await ctx.db
@@ -93,6 +140,7 @@ export const updateUser = internalMutation({
     await ctx.db.patch(user._id, {
       imageUrl: args.imageUrl,
       email: args.email,
+      name: args.name,
     });
 
     const podcast = await ctx.db

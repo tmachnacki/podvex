@@ -324,7 +324,8 @@ export const getPodcastHistory = query({
       .first();
 
     if (!user) {
-      throw new ConvexError("User not found");
+      console.warn("User not found");
+      return undefined;
     }
 
     const userhistory = await ctx.db

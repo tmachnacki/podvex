@@ -55,7 +55,7 @@ export const Billing = ({ userId }: { userId: string }) => {
           </TooltipTrigger>
           <TooltipContent
             side="right"
-            className="rounded border border-amber-500/50 bg-amber-500/10 p-4 backdrop-blur-sm"
+            className="z-[100] rounded border border-amber-500/50 bg-amber-500/10 p-4 backdrop-blur-md"
           >
             {`You must be a customer to manage your subscriptions.`}
           </TooltipContent>

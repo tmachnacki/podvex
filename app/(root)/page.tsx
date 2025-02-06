@@ -14,8 +14,6 @@ export default function Home() {
     userId: userId ? userId : undefined,
   });
 
-  const isLoading = !trendingPodcasts || !isLoaded || !userId;
-
   return (
     <div className="flex flex-col gap-12 pt-12 md:overflow-hidden">
       <section className="flex flex-col space-y-8">
@@ -63,7 +61,7 @@ export default function Home() {
               See History
             </Link>
           </div>
-          {trendingPodcasts && userId && isLoaded ? (
+          {podcastHistory && userId && isLoaded ? (
             <PodcastGrid>
               {podcastHistory?.map((podcast) => {
                 if (!podcast) return;
