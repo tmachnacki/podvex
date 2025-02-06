@@ -1,9 +1,11 @@
 import { ConvexError, v } from "convex/values";
 
 import {
+  ActionCtx,
   internalMutation,
   internalQuery,
   mutation,
+  MutationCtx,
   query,
   QueryCtx,
 } from "./_generated/server";
@@ -28,10 +30,7 @@ export const userLoginStatus = query(
       // no JWT token, user hasn't completed login flow yet
       return ["No JWT Token", null];
     }
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("clerkId"), identity.subject))
-      .unique();
+    const user = await userQuery(ctx, identity.subject);
     if (user === null) {
       // If Clerk has not told us about this user we're still waiting for the
       // webhook notification.
@@ -41,31 +40,33 @@ export const userLoginStatus = query(
   },
 );
 
-async function getCurrentUser(ctx: QueryCtx): Promise<Doc<"users"> | null> {
-  const identity = await ctx.auth.getUserIdentity();
-  if (identity === null) {
-    return null;
-  }
-  return await ctx.db
-    .query("users")
-    .filter((q) => q.eq(q.field("clerkId"), identity.subject))
-    .unique();
-}
+export const getCurrentUser = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      console.warn("[GET CURRENT USER] User not authenticated");
 
-export const currentUser = query((ctx: QueryCtx) => getCurrentUser(ctx));
+      return null;
+    }
+    const user = userQuery(ctx, identity.subject);
+    if (!user) {
+      console.warn("[GET CURRENT USER] User not found");
+      return null;
+    }
+    return user;
+  },
+});
 
 export const getUserById = query({
   args: { clerkId: v.string() },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      console.warn("No auth");
+    const user = await userQuery(ctx, args.clerkId);
+    if (!user) {
+      console.warn("[GET USER BY ID] User not found");
       return null;
     }
-    return await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("clerkId"), args.clerkId))
-      .unique();
+    return user;
   },
 });
 
@@ -128,13 +129,11 @@ export const updateUser = internalMutation({
     name: v.string(),
   },
   async handler(ctx, args) {
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("clerkId"), args.clerkId))
-      .unique();
+    const user = await userQuery(ctx, args.clerkId);
 
     if (!user) {
-      throw new ConvexError("User not found");
+      console.warn("[UPDATE USER] User not found");
+      return;
     }
 
     await ctx.db.patch(user._id, {
@@ -161,53 +160,60 @@ export const updateUser = internalMutation({
 export const deleteUser = internalMutation({
   args: { clerkId: v.string() },
   async handler(ctx, args) {
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("clerkId"), args.clerkId))
-      .unique();
+    const user = await userQuery(ctx, args.clerkId);
 
     if (!user) {
-      throw new ConvexError("User not found");
+      console.warn("[DELETE USER] User not found");
+      throw new ConvexError("[DELETE USER] User not found");
     }
 
     await ctx.db.delete(user._id);
   },
 });
 
-export const savePodast = mutation({
-  args: { podcastId: v.id("podcasts"), clerkId: v.string() },
+export const savePodcast = mutation({
+  args: { podcastId: v.id("podcasts") },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new ConvexError("Unauthorized");
+    if (!identity) {
+      console.warn("[SAVE PODCAST] User not authenticated");
+      throw new ConvexError("[SAVE PODCAST] User not authenticated");
+    }
 
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("clerkId"), args.clerkId))
-      .unique();
+    const user = await userQuery(ctx, identity.subject);
 
     if (!user) {
-      throw new ConvexError("User not found");
+      console.warn("[SAVE PODCAST] User not found");
+      throw new ConvexError("[SAVE PODCAST] User not found");
+    }
+
+    const alreadySaved = user.savedPodcasts.includes(args.podcastId);
+
+    if (alreadySaved) {
+      console.warn("[SAVE PODCAST] Podcast already saved");
+      throw new ConvexError("[SAVE PODCAST] Podcast already saved");
     }
 
     await ctx.db.patch(user._id, {
-      savedPodcasts: [...user.savedPodcasts!, args.podcastId],
+      savedPodcasts: [...user.savedPodcasts, args.podcastId],
     });
   },
 });
 
-export const unsavePodast = mutation({
-  args: { podcastId: v.id("podcasts"), clerkId: v.string() },
+export const unsavePodcast = mutation({
+  args: { podcastId: v.id("podcasts") },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new ConvexError("Unauthorized");
+    if (!identity) {
+      console.warn("[UNSAVE PODCAST] User not authenticated");
+      throw new ConvexError("[UNSAVE PODCAST] User not authenticated");
+    }
 
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("clerkId"), args.clerkId))
-      .unique();
+    const user = await userQuery(ctx, identity.subject);
 
     if (!user) {
-      throw new ConvexError("User not found");
+      console.warn("[UNSAVE PODCAST] User not found");
+      throw new ConvexError("[UNSAVE PODCAST] User not found");
     }
 
     const updatedSavedPodcasts = user.savedPodcasts.filter(
@@ -226,16 +232,11 @@ export const updateListeners = mutation({
     authorId: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new ConvexError("Unauthorized");
-
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("clerkId"), args.authorId))
-      .unique();
+    const user = await userQuery(ctx, args.authorId);
 
     if (!user) {
-      throw new ConvexError("User not found");
+      console.warn("[UPDATE LISTENERS] User not found");
+      throw new ConvexError("[UPDATE LISTENERS] User not found");
     }
 
     if (!user.listeners.includes(args.listenerId)) {
@@ -246,20 +247,19 @@ export const updateListeners = mutation({
   },
 });
 
+// stripe webhook
 export const updateSubscription = internalMutation({
   args: {
     priceId: v.string(),
-    userId: v.string(),
+    clerkId: v.string(),
     stripeCustomerId: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.userId))
-      .first();
+    const user = await userQuery(ctx, args.clerkId);
 
     if (!user) {
-      throw new ConvexError("User not found");
+      console.warn("[UPDATE SUBSCRIPTION] User not found");
+      throw new ConvexError("[UPDATE SUBSCRIPTION] User not found");
     }
 
     await ctx.db.patch(user._id, {
@@ -270,16 +270,15 @@ export const updateSubscription = internalMutation({
   },
 });
 
+// stripe webhook
 export const updateSubscriptionByPriceId = internalMutation({
-  args: { priceId: v.string(), userId: v.string() },
+  args: { priceId: v.string(), clerkId: v.string() },
   handler: async (ctx, args) => {
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.userId))
-      .first();
+    const user = await userQuery(ctx, args.clerkId);
 
     if (!user) {
-      throw new ConvexError("User matching stripe customer id not found");
+      console.warn("[UPDATE SUBSCRIPTION BY PRICE ID] User not found");
+      throw new ConvexError("[UPDATE SUBSCRIPTION BY PRICE ID] User not found");
     }
 
     await ctx.db.patch(user._id, {
@@ -288,16 +287,15 @@ export const updateSubscriptionByPriceId = internalMutation({
   },
 });
 
+// stripe webhook
 export const cancelSubscription = internalMutation({
-  args: { priceId: v.string(), userId: v.string() },
+  args: { priceId: v.string(), clerkId: v.string() },
   handler: async (ctx, args) => {
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.userId))
-      .first();
+    const user = await userQuery(ctx, args.clerkId);
 
     if (!user) {
-      throw new ConvexError("User not found");
+      console.warn("[CANCEL SUBSCRIPTION] User not found");
+      throw new ConvexError("[CANCEL SUBSCRIPTION] User not found");
     }
 
     await ctx.db.patch(user._id, {
@@ -318,7 +316,10 @@ export const getUserByCustomerId = query({
       .first();
 
     if (!user) {
-      throw new ConvexError("No user found with stripe customer id");
+      console.warn(
+        `[GET USER BY CUSTOMER ID] User not found with customer id: ${args.stripeCustomerId}`,
+      );
+      return null;
     }
 
     return user;
@@ -326,18 +327,18 @@ export const getUserByCustomerId = query({
 });
 
 export const getUserCustomer = internalQuery({
-  args: { userId: v.string() },
+  args: { clerkId: v.string() },
   handler: async (ctx, args) => {
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.userId))
-      .first();
+    const user = await userQuery(ctx, args.clerkId);
 
     if (!user) {
-      throw new ConvexError("User not found");
+      console.warn("[GET USER CUSTOMER] User not found");
+      return null;
     }
+
     if (!user.stripeCustomerId) {
-      throw new ConvexError("User has no stripe customer id");
+      console.warn("[GET USER CUSTOMER] User has no stripe customer id");
+      return null;
     }
 
     return user;
@@ -364,3 +365,14 @@ export const removePodcastFromUsersSaves = mutation({
     );
   },
 });
+
+// helper
+export async function userQuery(
+  ctx: QueryCtx | MutationCtx,
+  clerkId: string,
+): Promise<Doc<"users"> | null> {
+  return await ctx.db
+    .query("users")
+    .withIndex("by_clerkId", (q) => q.eq("clerkId", clerkId))
+    .unique();
+}

@@ -7,17 +7,15 @@ export const useUpdateHistory = () => {
   const updateHistoryMutation = useMutation(api.history.updateHistory);
 
   const updateHistory = async ({
-    userId,
     podcastId,
   }: {
-    userId: string;
     podcastId: Id<"podcasts">;
   }) => {
     try {
-      await updateHistoryMutation({ userId, podcastId });
+      await updateHistoryMutation({ podcastId });
     } catch (error) {
       console.error(error);
-      toast.error("Error udpating user history");
+      toast.error("Error updating your history", { description: `${error}` });
     }
   };
 

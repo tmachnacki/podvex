@@ -11,7 +11,7 @@ export default function Home() {
   const { isLoaded, isSignedIn, userId } = useAuth();
   const trendingPodcasts = useQuery(api.podcasts.getTrendingPodcasts);
   const podcastHistory = useQuery(api.podcasts.getPodcastHistory, {
-    userId: userId ? userId : undefined,
+    limit: 12,
   });
 
   return (
@@ -19,7 +19,7 @@ export default function Home() {
       <section className="flex flex-col space-y-8">
         <h1 className="text-xl font-bold">Trending Podcasts</h1>
 
-        {trendingPodcasts && userId && isLoaded ? (
+        {trendingPodcasts && userId && isSignedIn && isLoaded ? (
           <PodcastGrid>
             {trendingPodcasts?.map(
               ({
@@ -55,7 +55,7 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold">Jump Back In</h2>
             <Link
-              href={`/history/${userId}`}
+              href={`/history`}
               className="text-muted-foreground hover:text-foreground"
             >
               See History

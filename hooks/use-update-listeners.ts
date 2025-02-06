@@ -17,7 +17,9 @@ export const useUpdateListeners = () => {
       await increaseListeners({ listenerId, authorId });
     } catch (error) {
       console.error(error);
-      toast.error("Error udpating podcast views");
+      toast.error("Error updating podcast views", {
+        description: `${error}`,
+      });
     }
   };
 

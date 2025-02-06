@@ -1,6 +1,5 @@
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Button } from "@/components/ui/button";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import {
   Form,
   FormControl,
@@ -26,10 +25,9 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { set, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useMutation } from "convex/react";
-import { Pencil } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -92,7 +90,7 @@ export const EditPodcast = ({
       setOpen(false);
     } catch (error) {
       console.error(error);
-      toast.error("Error updating podcast");
+      toast.error("Error updating podcast", { description: `${error}` });
       setIsPending(false);
     }
   }
@@ -128,7 +126,7 @@ export const EditPodcast = ({
               name="podcastDescription"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Title</FormLabel>
+                  <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea
                       maxLength={2200}

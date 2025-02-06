@@ -72,8 +72,8 @@ export const PodcastDetailPlayer = ({
   );
   const [isSavePending, setIsSavePending] = useState(false);
 
-  const savePodcast = useMutation(api.users.savePodast);
-  const unsavePodcast = useMutation(api.users.unsavePodast);
+  const savePodcast = useMutation(api.users.savePodcast);
+  const unsavePodcast = useMutation(api.users.unsavePodcast);
   const [canIncreaseViews, setCanIncreaseViews] = useState(true);
 
   const { updateViews } = useUpdateViews();
@@ -93,30 +93,34 @@ export const PodcastDetailPlayer = ({
       setCanIncreaseViews(false);
     }
 
-    updateHistory({ userId: userId, podcastId });
+    updateHistory({ podcastId });
   };
 
   const handleSavePodcast = async () => {
     try {
       setIsSavePending(true);
-      await savePodcast({ clerkId: userId, podcastId });
+      await savePodcast({ podcastId });
       setIsSavePending(false);
       toast.success("Podcast added to your library");
     } catch (error) {
       setIsSavePending(false);
-      toast.error("Error adding podcast to your library");
+      toast.error("Error adding podcast to your library", {
+        description: `${error}`,
+      });
     }
   };
 
   const handleUnsavePodcast = async () => {
     try {
       setIsSavePending(true);
-      await unsavePodcast({ clerkId: userId, podcastId });
+      await unsavePodcast({ podcastId });
       setIsSavePending(false);
       toast("Podcast removed from your library");
     } catch (error) {
       setIsSavePending(false);
-      toast.error("Error removing podcast from your library");
+      toast.error("Error removing podcast from your library", {
+        description: `${error}`,
+      });
     }
   };
 
@@ -132,8 +136,6 @@ export const PodcastDetailPlayer = ({
             src={imageUrl}
             width={400}
             height={400}
-            // fill
-            // sizes="240"
             alt="Podcast thumbnail"
             className="absolute inset-0 z-20 aspect-square h-full w-full rounded-xl object-cover object-center"
           />

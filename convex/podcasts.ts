@@ -1,6 +1,7 @@
 import { ConvexError, v } from "convex/values";
 
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
+import { userQuery } from "./users";
 
 export const createPodcast = mutation({
   args: {
@@ -21,33 +22,32 @@ export const createPodcast = mutation({
     const identity = await ctx.auth.getUserIdentity();
 
     if (!identity) {
-      throw new ConvexError("User not authenticated");
+      console.warn("[CREATE PODCAST] User not authenticated");
+      return;
     }
 
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("email"), identity.email))
-      .collect();
+    const user = await userQuery(ctx, identity.subject);
 
-    if (user.length === 0) {
-      throw new ConvexError("User not found");
+    if (!user) {
+      console.warn("[CREATE PODCAST] User not found");
+      return;
     }
 
     return await ctx.db.insert("podcasts", {
       audioStorageId: args.audioStorageId,
-      user: user[0]._id,
+      user: user._id,
       podcastTitle: args.podcastTitle,
       podcastDescription: args.podcastDescription,
       audioUrl: args.audioUrl,
       imageUrl: args.imageUrl,
       imageStorageId: args.imageStorageId,
-      author: user[0].name,
-      authorId: user[0].clerkId,
+      author: user.name,
+      authorId: user.clerkId,
       voicePrompt: args.voicePrompt,
       imagePrompt: args.imagePrompt,
       voiceType: args.voiceType,
       views: args.views,
-      authorImageUrl: user[0].imageUrl,
+      authorImageUrl: user.imageUrl,
       audioDuration: args.audioDuration,
     });
   },
@@ -63,19 +63,23 @@ export const updatePodcast = mutation({
     authorId: v.string(),
   },
   handler: async (ctx, args) => {
-    if (args.clerkId !== args.authorId) throw new ConvexError("Unauthorized");
+    if (args.clerkId !== args.authorId) {
+      console.warn("[UPDATE PODCAST] User not authorized");
+      throw new ConvexError("[UPDATE PODCAST] User not authorized");
+    }
 
     const identity = ctx.auth.getUserIdentity();
     if (!identity) {
-      throw new ConvexError("User not authenticated");
+      console.warn("[UPDATE PODCAST] User not authenticated");
+      throw new ConvexError("[UPDATE PODCAST] User not authenticated");
     }
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
-      .first();
+    const user = await userQuery(ctx, args.clerkId);
 
-    if (!user) throw new ConvexError("User not found");
+    if (!user) {
+      console.warn("[UPDATE PODCAST] User not found");
+      throw new ConvexError("[UPDATE PODCAST] User not found");
+    }
 
     return await ctx.db.patch(args.podcastId, {
       podcastTitle: args.podcastTitle,
@@ -90,11 +94,6 @@ export const getUrl = mutation({
     storageId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
-    const identity = ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new ConvexError("User not authenticated");
-    }
-
     return await ctx.storage.getUrl(args.storageId);
   },
 });
@@ -118,11 +117,12 @@ export const getPodcastByVoiceType = query({
   },
 });
 
+// display more podcasts from the same author on podcast details page
 export const getMoreFromAuthor = query({
   args: { podcastId: v.id("podcasts") },
   handler: async (ctx, args) => {
     const podcast = await ctx.db.get(args.podcastId);
-    if (!podcast) return undefined;
+    if (!podcast) return null;
 
     const podcasts = await ctx.db
       .query("podcasts")
@@ -164,16 +164,20 @@ export const getTrendingPodcasts = query({
 
 // podcasts in array of saved podcast ids
 export const getSavedPodcasts = query({
-  args: {
-    clerkId: v.string(),
-  },
+  args: {},
   handler: async (ctx, args) => {
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
-      .first();
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      console.warn("[GET SAVED PODCASTS] User not authenticated");
+      return null;
+    }
 
-    if (!user) throw new ConvexError("User not found");
+    const user = await userQuery(ctx, identity.subject);
+
+    if (!user) {
+      console.warn("[GET SAVED PODCASTS] User not found");
+      return null;
+    }
 
     return Promise.all(
       user.savedPodcasts.map(async (pId) => await ctx.db.get(pId)),
@@ -246,12 +250,39 @@ export const updatePodcastViews = mutation({
     const podcast = await ctx.db.get(args.podcastId);
 
     if (!podcast) {
-      throw new ConvexError("Podcast not found");
+      console.warn("[UPDATE PODCAST VIEWS] Podcast not found");
+      throw new ConvexError("[UPDATE PODCAST VIEWS] Podcast not found");
     }
 
     return await ctx.db.patch(args.podcastId, {
       views: podcast.views + 1,
     });
+  },
+});
+
+// delete all podcasts by user upon clerk webhook user.deleted event
+export const deleteUserPodcasts = internalMutation({
+  args: { clerkId: v.string() },
+  handler: async (ctx, args) => {
+    const user = await userQuery(ctx, args.clerkId);
+
+    if (!user) {
+      console.warn("[DELETE USER PODCASTS] User not found");
+      return;
+    }
+
+    const usersPodcasts = await ctx.db
+      .query("podcasts")
+      .filter((q) => q.eq(q.field("authorId"), args.clerkId))
+      .collect();
+
+    await Promise.all(
+      usersPodcasts.map(async (p) => {
+        await ctx.storage.delete(p.imageStorageId);
+        await ctx.storage.delete(p.audioStorageId);
+        await ctx.db.delete(p._id);
+      }),
+    );
   },
 });
 
@@ -265,7 +296,8 @@ export const deletePodcast = mutation({
     const podcast = await ctx.db.get(args.podcastId);
 
     if (!podcast) {
-      throw new ConvexError("Podcast not found");
+      console.warn("[DELETE PODCAST] Podcast not found");
+      throw new ConvexError("[DELETE PODCAST] Podcast not found");
     }
 
     // remove podcast from saves
@@ -310,25 +342,22 @@ export const deletePodcastAudio = mutation({
 });
 
 export const getPodcastHistory = query({
-  args: { userId: v.optional(v.string()), limit: v.optional(v.number()) },
+  args: { limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
-    if (!args.userId) return undefined;
-    const identity = ctx.auth.getUserIdentity();
+    const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
-      throw new ConvexError("User not authenticated");
+      console.warn("[GET PODCAST HISTORY] User not authenticated");
+      return null;
     }
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.userId!))
-      .first();
+    const user = await userQuery(ctx, identity.subject);
 
     if (!user) {
-      console.warn("User not found");
-      return undefined;
+      console.warn("[GET PODCAST HISTORY] User not found");
+      return null;
     }
 
-    const userhistory = await ctx.db
+    const userHistory = await ctx.db
       .query("history")
       .withIndex("by_user", (q) => q.eq("user", user._id))
       .filter((q) => q.eq(q.field("user"), user._id))
@@ -336,7 +365,7 @@ export const getPodcastHistory = query({
 
     const limit = args.limit ?? 12;
     return Promise.all(
-      userhistory
+      userHistory
         .sort((a, b) => b.listenedAt - a.listenedAt)
         .slice(0, limit)
         .map(async (p) => await ctx.db.get(p.podcastId)),

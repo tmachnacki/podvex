@@ -17,9 +17,10 @@ export function EnsureClerkData({
   console.log({ loginStatus });
 
   // used for the side effect of keeping the current user loaded
-  useQuery(api.users.currentUser);
+  useQuery(api.users.getCurrentUser);
   if (loginStatus !== "Logged In") {
     return loading ?? null; // waiting for user row
   }
+
   return children;
 }

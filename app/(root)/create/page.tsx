@@ -87,7 +87,8 @@ export default function CreatePodcast() {
   });
 
   const handleDeleteThumbnail = async () => {
-    if (!imageStorageId) return toast.error("image storage not provided");
+    if (!imageStorageId)
+      return toast.error("[DELETE THUMBNAIL] image storage id not provided");
     try {
       setIsDeletingThumbnail(true);
       await deletePodcastThumbnail({ imageStorageId });
@@ -97,14 +98,16 @@ export default function CreatePodcast() {
       setIsDeletingThumbnail(false);
       toast("Thumbnail deleted");
     } catch (error) {
-      toast.error("Error deleting thumbnail");
+      toast.error("Error deleting thumbnail", {
+        description: `${error}`,
+      });
       console.error(error);
       setIsDeletingThumbnail(false);
     }
   };
 
   const handleDeleteAudio = async () => {
-    if (!audioStorageId) return toast.error("audio storage not provided");
+    if (!audioStorageId) return toast.error("Audio storage id not provided");
     try {
       setIsDeletingAudio(true);
       await deletePodcastAudio({ audioStorageId });
@@ -114,7 +117,9 @@ export default function CreatePodcast() {
       setIsDeletingAudio(false);
       toast("Audio deleted");
     } catch (error) {
-      toast.error("Error deleting audio");
+      toast.error("Error deleting audio", {
+        description: `${error}`,
+      });
       console.error(error);
       setIsDeletingAudio(false);
     }
@@ -170,7 +175,9 @@ export default function CreatePodcast() {
       router.push("/");
     } catch (error) {
       console.error(error);
-      toast.error("Error creating podcast");
+      toast.error("Error creating podcast", {
+        description: `${error}`,
+      });
       setIsSubmitting(false);
     }
   }

@@ -7,7 +7,7 @@ import { action, internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 
 type Metadata = {
-  userId: string;
+  userId: string; // clerkId
 };
 
 export const pay = action({
@@ -16,7 +16,8 @@ export const pay = action({
     const identity = await ctx.auth.getUserIdentity();
 
     if (!identity) {
-      throw new ConvexError("you must be logged in to subscribe");
+      console.warn("[STRIPE PAY] User not authenticated");
+      throw new ConvexError("[STRIPE PAY] User must be logged in to subscribe");
     }
 
     const domain =
@@ -45,16 +46,16 @@ export const createPortal = action({
     const identity = await ctx.auth.getUserIdentity();
 
     if (!identity) {
-      throw new ConvexError("you must be logged in to manage your billing.");
+      console.warn("[CREATE PORTAL] User not authenticated");
+      throw new ConvexError("[CREATE PORTAL] User not authenticated");
     }
 
     const customerUser = await ctx.runQuery(internal.users.getUserCustomer, {
-      userId: identity.subject,
+      clerkId: identity.subject,
     });
-    if (!customerUser.stripeCustomerId) {
-      throw new ConvexError(
-        "you must have a stripe account to manage your billing.",
-      );
+    if (!customerUser?.stripeCustomerId) {
+      console.warn("[CREATE PORTAL] User has no stripe customer id");
+      throw new ConvexError("[CREATE PORTAL] User has no stripe customer id");
     }
 
     const domain =
@@ -92,10 +93,6 @@ export const fulfill = internalAction({
           metadata: Metadata;
         };
 
-        // const session = await stripe.checkout.sessions.retrieve(
-        //   completedEvent.id,
-        // );
-
         const subscription = await stripe.subscriptions.retrieve(
           completedEvent.subscription as string,
         );
@@ -105,7 +102,7 @@ export const fulfill = internalAction({
         const userId = completedEvent.metadata.userId;
 
         await ctx.runMutation(internal.users.updateSubscription, {
-          userId,
+          clerkId: userId,
           priceId: subscription.items.data[0].price.id,
           stripeCustomerId: subscription.customer as string,
         });
@@ -124,7 +121,7 @@ export const fulfill = internalAction({
 
         await ctx.runMutation(internal.users.updateSubscriptionByPriceId, {
           priceId: subscription.items.data[0]?.price.id,
-          userId: completedEvent.metadata.userId,
+          clerkId: completedEvent.metadata.userId,
         });
       }
 
@@ -140,7 +137,7 @@ export const fulfill = internalAction({
         const userId = completedEvent.metadata.userId;
 
         await ctx.runMutation(internal.users.updateSubscription, {
-          userId,
+          clerkId: userId,
           priceId: subscription.items.data[0]?.price.id,
           stripeCustomerId: subscription.customer as string,
         });

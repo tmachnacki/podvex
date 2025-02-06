@@ -50,7 +50,7 @@ export const PodcastCard = ({
     });
     updateViews({ podcastId });
     updateListeners({ listenerId: currentUserId, authorId });
-    updateHistory({ userId: currentUserId, podcastId });
+    updateHistory({ podcastId });
   };
 
   return (

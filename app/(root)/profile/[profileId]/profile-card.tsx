@@ -88,7 +88,7 @@ export const ProfileCard = ({
               <ShimmerButton
                 className="h-10"
                 shimmerColor="#06b6d4"
-                onClick={() => router.push(`/get-verified/${currentUserId}`)}
+                onClick={() => router.push(`/get-verified`)}
               >
                 <div className="flex items-center justify-center space-x-3 text-foreground">
                   <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-cyan-500">

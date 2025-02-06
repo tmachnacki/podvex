@@ -18,7 +18,7 @@ export default function Discover({
   const podcastsData = useQuery(api.podcasts.getPodcastBySearch, {
     search: search || "",
   });
-  const { userId } = useAuth();
+  const { userId: clerkId } = useAuth();
 
   return (
     <div className="flex flex-col gap-12">
@@ -29,32 +29,34 @@ export default function Discover({
           {search && <span className="">{search}</span>}
         </h1>
 
-        {podcastsData && userId ? (
+        {podcastsData && clerkId ? (
           podcastsData.length > 0 ? (
             <PodcastGrid>
-              {podcastsData?.map(
-                ({
-                  _id,
-                  podcastTitle,
-                  podcastDescription,
-                  imageUrl,
-                  audioUrl,
-                  author,
-                  authorId,
-                }) => (
-                  <PodcastCard
-                    key={_id}
-                    imageUrl={imageUrl as string}
-                    title={podcastTitle}
-                    description={podcastDescription}
-                    podcastId={_id}
-                    audioUrl={audioUrl}
-                    author={author}
-                    authorId={authorId}
-                    currentUserId={userId}
-                  />
-                ),
-              )}
+              {podcastsData
+                ?.filter((p) => p.authorId !== clerkId)
+                .map(
+                  ({
+                    _id,
+                    podcastTitle,
+                    podcastDescription,
+                    imageUrl,
+                    audioUrl,
+                    author,
+                    authorId,
+                  }) => (
+                    <PodcastCard
+                      key={_id}
+                      imageUrl={imageUrl as string}
+                      title={podcastTitle}
+                      description={podcastDescription}
+                      podcastId={_id}
+                      audioUrl={audioUrl}
+                      author={author}
+                      authorId={authorId}
+                      currentUserId={clerkId}
+                    />
+                  ),
+                )}
             </PodcastGrid>
           ) : (
             <EmptyState title="No results found" search />

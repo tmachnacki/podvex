@@ -85,10 +85,10 @@ const LeftSideNav = () => {
           })}
           {isSignedIn && isLoaded ? (
             <Link
-              href={`/library/${user?.id}`}
+              href={`/library`}
               className={cn(
                 "relative flex items-center justify-center gap-3 rounded-lg px-4 py-3 max-lg:px-4 lg:justify-start",
-                isActive(`/library/${user?.id}`)
+                isActive(`/library`)
                   ? "bg-gradient-to-r from-primary via-primary to-primary/0 text-white"
                   : "hover:bg-accent dark:hover:bg-background",
               )}

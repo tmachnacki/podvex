@@ -68,8 +68,8 @@ export const PodcastRow = ({
     clerkId: currentUserId,
   })?.savedPodcasts?.includes(podcast._id);
   const [isSavePending, setIsSavePending] = useState(false);
-  const savePodcast = useMutation(api.users.savePodast);
-  const unsavePodcast = useMutation(api.users.unsavePodast);
+  const savePodcast = useMutation(api.users.savePodcast);
+  const unsavePodcast = useMutation(api.users.unsavePodcast);
 
   const { updateViews } = useUpdateViews();
   const { updateListeners } = useUpdateListeners();
@@ -85,30 +85,34 @@ export const PodcastRow = ({
     });
     updateViews({ podcastId: podcast._id });
     updateListeners({ listenerId: currentUserId, authorId: podcast.authorId });
-    updateHistory({ userId: currentUserId, podcastId: podcast._id });
+    updateHistory({ podcastId: podcast._id });
   };
 
   const handleSavePodcast = async () => {
     try {
       setIsSavePending(true);
-      await savePodcast({ clerkId: currentUserId, podcastId: podcast._id });
+      await savePodcast({ podcastId: podcast._id });
       setIsSavePending(false);
       toast.success("Podcast added to your library");
     } catch (error) {
       setIsSavePending(false);
-      toast.error("Error adding podcast to your library");
+      toast.error("Error adding podcast to your library", {
+        description: `${error}`,
+      });
     }
   };
 
   const handleUnsavePodcast = async () => {
     try {
       setIsSavePending(true);
-      await unsavePodcast({ clerkId: currentUserId, podcastId: podcast._id });
+      await unsavePodcast({ podcastId: podcast._id });
       setIsSavePending(false);
       toast("Podcast removed from your library");
     } catch (error) {
       setIsSavePending(false);
-      toast.error("Error removing podcast from your library");
+      toast.error("Error removing podcast from your library", {
+        description: `${error}`,
+      });
     }
   };
 
@@ -141,17 +145,13 @@ export const PodcastRow = ({
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
-          {/* <div className="relative aspect-square w-12 overflow-hidden rounded-sm"> */}
           <Image
             src={podcast.imageUrl}
             width={80}
             height={80}
-            // fill
-            // sizes=""
             alt="podcast thumbnail"
             className="aspect-square w-10 rounded-sm object-cover object-center"
           />
-          {/* </div> */}
 
           <div className="flex flex-col truncate">
             <Link

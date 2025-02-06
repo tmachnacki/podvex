@@ -4,16 +4,12 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { api } from "@/convex/_generated/api";
 import { TStripePlan } from "@/lib/stripe-plans";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@clerk/nextjs";
 import { useAction, useQuery } from "convex/react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-type PriceCardProps = {
-  currentUserId: string;
-} & TStripePlan;
-
 export const PriceCard = ({
-  currentUserId,
   name,
   price,
   priceId,
@@ -22,7 +18,9 @@ export const PriceCard = ({
   features,
   isFeatured,
   featuredLabel,
-}: PriceCardProps) => {
+}: TStripePlan) => {
+  const { isLoaded, isSignedIn, userId: clerkId } = useAuth();
+
   const createCheckoutSession = useAction(api.stripe.pay);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   // const createPortalSession = useAction(api.stripe.createPortal);
@@ -41,7 +39,9 @@ export const PriceCard = ({
       window.location.href = sessionUrl;
     } catch (error) {
       console.error(error);
-      toast.error(`Error creating checkout session ${error}`);
+      toast.error(`Error creating checkout session`, {
+        description: `${error}`,
+      });
     } finally {
       setCheckoutLoading(false);
     }

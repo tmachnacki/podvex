@@ -32,7 +32,7 @@ export const Billing = ({ userId }: { userId: string }) => {
       window.location.href = portalSessionUrl;
     } catch (error) {
       console.error(error);
-      toast.error(`Error creating portal session ${error}`);
+      toast.error(`Error creating portal session`, { description: `${error}` });
     } finally {
       setPortalLoading(false);
     }

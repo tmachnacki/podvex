@@ -55,8 +55,11 @@ const handleClerkWebhook = httpAction(async (ctx, request) => {
         });
         break;
       case "user.deleted":
+        await ctx.runMutation(internal.podcasts.deleteUserPodcasts, {
+          clerkId: event.data.id as string,
+        });
         await ctx.runMutation(internal.history.deleteUserHistory, {
-          userId: event.data.id as string,
+          clerkId: event.data.id as string,
         });
         await ctx.runMutation(internal.users.deleteUser, {
           clerkId: event.data.id as string,

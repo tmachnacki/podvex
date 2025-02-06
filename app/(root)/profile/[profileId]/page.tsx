@@ -23,11 +23,11 @@ export default function ProfilePage({
   const podcastsData = useQuery(api.podcasts.getPodcastByAuthorId, {
     authorId: params.profileId,
   });
-  const { userId } = useAuth();
+  const { userId: clerkId } = useAuth();
 
-  const isOwnProfile = userId === params.profileId;
+  const isOwnProfile = clerkId === params.profileId;
 
-  if (!authorUser || !podcastsData || !userId) {
+  if (!authorUser || !podcastsData || !clerkId) {
     return (
       <section className="flex flex-col">
         <h1 className="pb-8 pt-12 text-xl font-bold max-md:text-center">
@@ -53,7 +53,7 @@ export default function ProfilePage({
           imageUrl={authorUser?.imageUrl!}
           userFirstName={authorUser?.name!}
           isVerified={authorUser.isVerified}
-          currentUserId={userId}
+          currentUserId={clerkId}
           profileId={params.profileId}
         />
       </div>
@@ -78,7 +78,7 @@ export default function ProfilePage({
                   audioUrl={podcast.audioUrl!}
                   author={podcast.author!}
                   authorId={podcast.authorId!}
-                  currentUserId={userId}
+                  currentUserId={clerkId}
                 />
               ))}
           </PodcastGrid>

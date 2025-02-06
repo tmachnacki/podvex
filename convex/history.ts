@@ -1,19 +1,22 @@
 import { ConvexError, v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
+import { userQuery } from "./users";
 
+// update current user's listening history
 export const updateHistory = mutation({
-  args: { userId: v.string(), podcastId: v.id("podcasts") },
+  args: { podcastId: v.id("podcasts") },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new ConvexError("Unauthorized");
+    if (!identity) {
+      console.warn("[UPDATE HISTORY] User not authenticated");
+      throw new ConvexError("[UPDATE HISTORY] User not authenticated");
+    }
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.userId))
-      .first();
+    const user = await userQuery(ctx, identity.subject);
 
     if (!user) {
-      throw new ConvexError("User not found");
+      console.warn("[UPDATE HISTORY] User not found");
+      throw new ConvexError("[UPDATE HISTORY] User not found");
     }
 
     const inHistory = await ctx.db
@@ -40,11 +43,10 @@ export const updateHistory = mutation({
   },
 });
 
+// remove podcast entries from history table
 export const deletePodcastHistory = mutation({
   args: { podcastId: v.id("podcasts") },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new ConvexError("Unauthorized");
     const historiesWithPodcast = await ctx.db
       .query("history")
       .withIndex("by_podcastId", (q) => q.eq("podcastId", args.podcastId))
@@ -58,16 +60,15 @@ export const deletePodcastHistory = mutation({
   },
 });
 
+// used to delete user history upon clerk webhook user.deleted event
 export const deleteUserHistory = internalMutation({
-  args: { userId: v.string() },
+  args: { clerkId: v.string() },
   handler: async (ctx, args) => {
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.userId))
-      .first();
+    const user = await userQuery(ctx, args.clerkId);
 
     if (!user) {
-      throw new ConvexError("User not found");
+      console.warn("[DELETE USER HISTORY] User not found");
+      throw new ConvexError("[DELETE USER HISTORY] User not found");
     }
 
     const historiesWithUser = await ctx.db
@@ -83,11 +84,9 @@ export const deleteUserHistory = internalMutation({
   },
 });
 
-export const getSinglePodastHistory = query({
+export const getSinglePodcastHistory = query({
   args: { userId: v.string(), podcastId: v.id("podcasts") },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new ConvexError("Unauthorized");
     const podcast = await ctx.db
       .query("history")
       .filter((q) =>
@@ -101,25 +100,25 @@ export const getSinglePodastHistory = query({
   },
 });
 
-export const getUserHistory = query({
-  args: { userId: v.string() },
-  handler: async (ctx, args) => {
+export const getCurrentUserHistory = query({
+  args: {},
+  handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new ConvexError("Unauthorized");
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.userId))
-      .first();
-
-    if (!user) {
-      throw new ConvexError("User not found");
+    if (!identity) {
+      console.warn("[USER HISTORY] User not authenticated");
+      return null;
     }
 
-    const histories = await ctx.db
+    const user = await userQuery(ctx, identity.subject);
+
+    if (!user) {
+      console.warn("[USER HISTORY] User not found");
+      return null;
+    }
+
+    return await ctx.db
       .query("history")
-      .withIndex("by_user", (q) => q.eq("user", user?._id))
+      .withIndex("by_user", (q) => q.eq("user", user._id))
       .collect();
-    return histories;
   },
 });

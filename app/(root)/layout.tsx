@@ -6,8 +6,6 @@ import Link from "next/link";
 import PodcastPlayer from "@/components/podcast-player";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ContentWrapper } from "./content-wrapper";
-import { SignedIn } from "@clerk/nextjs";
-import { EnsureClerkData } from "@/app/(root)/ensure-clerk-data";
 
 export default function RootLayout({
   children,
@@ -16,40 +14,36 @@ export default function RootLayout({
 }>) {
   return (
     <div className="relative flex h-dvh flex-col overflow-hidden">
-      <EnsureClerkData>
-        <>
-          <main className="relative flex overflow-hidden">
-            <LeftSideNav />
+      <main className="relative flex overflow-hidden">
+        <LeftSideNav />
 
-            <ScrollArea className="min-h-dvh flex-1">
-              <section className="flex flex-1 flex-col px-4 sm:px-14">
-                <div className="mx-auto flex w-full max-w-5xl flex-col max-sm:px-4">
-                  <div className="flex h-16 items-center justify-between border-b border-border md:hidden">
-                    <Link
-                      href={"/"}
-                      className="flex items-center justify-start gap-2"
-                    >
-                      <Image
-                        src="/logo.svg"
-                        width={28}
-                        height={28}
-                        alt="menu icon"
-                      />
-                      <p className="text-2xl font-bold">Podvex</p>
-                    </Link>
-                    <MobileNav />
-                  </div>
-                  <ContentWrapper>{children}</ContentWrapper>
-                </div>
-              </section>
-              <ScrollBar />
-            </ScrollArea>
+        <ScrollArea className="min-h-dvh flex-1">
+          <section className="flex flex-1 flex-col px-4 sm:px-14">
+            <div className="mx-auto flex w-full max-w-5xl flex-col max-sm:px-4">
+              <div className="flex h-16 items-center justify-between border-b border-border md:hidden">
+                <Link
+                  href={"/"}
+                  className="flex items-center justify-start gap-2"
+                >
+                  <Image
+                    src="/logo.svg"
+                    width={28}
+                    height={28}
+                    alt="menu icon"
+                  />
+                  <p className="text-2xl font-bold">Podvex</p>
+                </Link>
+                <MobileNav />
+              </div>
+              <ContentWrapper>{children}</ContentWrapper>
+            </div>
+          </section>
+          <ScrollBar />
+        </ScrollArea>
 
-            <RightSidebar />
-          </main>
-          <PodcastPlayer />
-        </>
-      </EnsureClerkData>
+        <RightSidebar />
+      </main>
+      <PodcastPlayer />
 
       <div
         aria-hidden="true"
