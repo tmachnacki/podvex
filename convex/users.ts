@@ -164,7 +164,7 @@ export const deleteUser = internalMutation({
 
     if (!user) {
       console.warn("[DELETE USER] User not found");
-      throw new ConvexError("[DELETE USER] User not found");
+      return;
     }
 
     await ctx.db.delete(user._id);

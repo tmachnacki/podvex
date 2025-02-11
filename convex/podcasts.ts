@@ -23,14 +23,14 @@ export const createPodcast = mutation({
 
     if (!identity) {
       console.warn("[CREATE PODCAST] User not authenticated");
-      return;
+      throw new ConvexError("[CREATE PODCAST] User not authenticated");
     }
 
     const user = await userQuery(ctx, identity.subject);
 
     if (!user) {
       console.warn("[CREATE PODCAST] User not found");
-      return;
+      throw new ConvexError("[CREATE PODCAST] User not found");
     }
 
     return await ctx.db.insert("podcasts", {
@@ -236,7 +236,7 @@ export const getPodcastBySearch = query({
     return await ctx.db
       .query("podcasts")
       .withSearchIndex("search_body", (q) =>
-        q.search("podcastDescription" || "podcastTitle", args.search),
+        q.search("podcastDescription", args.search),
       )
       .take(12);
   },
@@ -278,14 +278,20 @@ export const deleteUserPodcasts = internalMutation({
 
     await Promise.all(
       usersPodcasts.map(async (p) => {
-        await ctx.storage.delete(p.imageStorageId);
-        await ctx.storage.delete(p.audioStorageId);
-        await ctx.db.delete(p._id);
+        // await ctx.storage.delete(p.imageStorageId);
+        // await ctx.storage.delete(p.audioStorageId);
+        // await ctx.db.delete(p._id);
+        try {
+          await deletePodcast(ctx, { podcastId: p._id, imageStorageId: p.imageStorageId, audioStorageId: p.audioStorageId });
+        } catch (error) {
+          console.error(error);
+        }
       }),
     );
   },
 });
 
+// user request to delete podcast
 export const deletePodcast = mutation({
   args: {
     podcastId: v.id("podcasts"),
@@ -317,9 +323,11 @@ export const deletePodcast = mutation({
       }),
     );
 
-    await ctx.storage.delete(args.imageStorageId);
-    await ctx.storage.delete(args.audioStorageId);
-    return await ctx.db.delete(args.podcastId);
+    await Promise.all([
+      ctx.storage.delete(args.imageStorageId),
+      ctx.storage.delete(args.audioStorageId),
+    ]);
+    return await ctx.db.delete(args.podcastId)
   },
 });
 

@@ -44,7 +44,7 @@ export const updateHistory = mutation({
 });
 
 // remove podcast entries from history table
-export const deletePodcastHistory = mutation({
+export const deletePodcastHistory = internalMutation({
   args: { podcastId: v.id("podcasts") },
   handler: async (ctx, args) => {
     const historiesWithPodcast = await ctx.db
@@ -68,7 +68,7 @@ export const deleteUserHistory = internalMutation({
 
     if (!user) {
       console.warn("[DELETE USER HISTORY] User not found");
-      throw new ConvexError("[DELETE USER HISTORY] User not found");
+      return;
     }
 
     const historiesWithUser = await ctx.db
