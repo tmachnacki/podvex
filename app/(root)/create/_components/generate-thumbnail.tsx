@@ -70,7 +70,7 @@ export const GenerateThumbnail = ({
         await handleDeleteThumbnail();
       }
 
-      const file = new File([blob], fileName, { type: "image/png" });
+      const file = new File([blob], fileName);
 
       const uploaded = await startUpload([file]);
       const storageId = (uploaded[0].response as any).storageId;
@@ -181,6 +181,7 @@ export const GenerateThumbnail = ({
             className="hidden"
             ref={imageRef}
             onChange={(e) => uploadImage(e)}
+            accept="image/png, image/jpeg, image/jpg"
           />
           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
             {!isImageLoading ? (
@@ -192,7 +193,7 @@ export const GenerateThumbnail = ({
           <div className="flex flex-col items-center gap-2 text-sm">
             <h2 className="text-primary">Click to upload</h2>
             <p className="text-muted-foreground">
-              SVG, PNG, JPG, or GIF (max. 1080x1080px)
+              PNG, JPG, or JPEG
             </p>
           </div>
         </div>

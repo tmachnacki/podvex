@@ -80,7 +80,7 @@ export const GeneratePodcast = ({
     setAudioUrl("");
 
     try {
-      const file = new File([blob], fileName, { type: "audio/mpeg" });
+      const file = new File([blob], fileName, { type: "audio/mp3" });
 
       const uploaded = await startUpload([file]);
       const storageId = (uploaded[0].response as any).storageId;
@@ -131,9 +131,9 @@ export const GeneratePodcast = ({
         voice: voice,
         input: voicePrompt,
       });
-      const blob = new Blob([response], { type: "audio/mpeg" });
+      const blob = new Blob([response], { type: "audio/mp3" });
 
-      handleAudio(blob, `thumbnail-${uuidv4()}.mp3`);
+      handleAudio(blob, `audio-${uuidv4()}.mp3`);
       setIsGenerating(false);
     } catch (error) {
       console.error(error);
@@ -200,6 +200,7 @@ export const GeneratePodcast = ({
                 className="hidden"
                 ref={audioInputRef}
                 onChange={(e) => uploadAudio(e)}
+                accept="audio/mp3"
               />
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 {!isAudioUploading ? (
