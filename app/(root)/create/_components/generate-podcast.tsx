@@ -24,6 +24,8 @@ import {
 } from "@/components/ui/select";
 import { aiVoices } from "@/lib/ai-voices";
 
+const MAX_AUDIO_SIZE = 10 * 1024 * 1024; // 10MB
+
 export interface GeneratePodcastProps {
   audioMediaMethod: "Upload" | "Generate";
   setAudioMediaMethod: React.Dispatch<
@@ -63,6 +65,9 @@ export const GeneratePodcast = ({
 }: GeneratePodcastProps) => {
   const [isAudioUploading, setIsAudioUploading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [audioError, setAudioError] = useState<string>("");
+  const [audioVoiceError, setAudioVoiceError] = useState<string>("");
+  const [audioPromptError, setAudioPromptError] = useState<string>("");
 
   const audioInputRef = useRef<HTMLInputElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -83,7 +88,8 @@ export const GeneratePodcast = ({
       const file = new File([blob], fileName, { type: "audio/mp3" });
 
       const uploaded = await startUpload([file]);
-      const storageId = (uploaded[0].response as any).storageId;
+      const storageId = (uploaded[0].response as any)
+        .storageId as Id<"_storage">;
 
       setAudioStorageId(storageId);
 
@@ -100,11 +106,31 @@ export const GeneratePodcast = ({
 
   const uploadAudio = async (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
+    setAudioError("");
 
     try {
       const files = e.target.files;
-      if (!files) return;
+      if (!files || !!files.length) {
+        setAudioError("Please upload an audio file");
+        return;
+      }
+
+      if (files.length > 1) {
+        setAudioError("Please upload only one file");
+        return;
+      }
+
       const file = files[0];
+      if (file.size > MAX_AUDIO_SIZE) {
+        setAudioError("File size must be less than 10MB");
+        return;
+      }
+
+      if (file.type !== "audio/mp3") {
+        setAudioError("File must be a valid MP3");
+        return;
+      }
+
       const blob = await file.arrayBuffer().then((ab) => new Blob([ab]));
 
       handleAudio(blob, file.name);
@@ -114,14 +140,34 @@ export const GeneratePodcast = ({
     }
   };
 
+  const handleVoiceChange = (value: string | null) => {
+    setVoice(value);
+    if (!value) {
+      setAudioVoiceError("Please provide a voice type to generate a podcast");
+      return;
+    }
+
+    setAudioVoiceError("");
+  };
+
+  const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setVoicePrompt(e.target.value);
+    if (!e.target.value) {
+      setAudioPromptError("Please provide a prompt to generate a podcast");
+      return;
+    }
+
+    setAudioPromptError("");
+  };
+
   const generateAudio = async () => {
     if (!voice) {
-      toast.warning("Please provide a voice type to generate a podcast");
+      setAudioVoiceError("Please provide a voice type to generate a podcast");
       return setIsGenerating(false);
     }
 
     if (!voicePrompt) {
-      toast.warning("Please provide a prompt to generate a podcast");
+      setAudioPromptError("Please provide a prompt to generate a podcast");
       return setIsGenerating(false);
     }
 
@@ -191,34 +237,42 @@ export const GeneratePodcast = ({
             </TabsTrigger>
           </TabsList>
           <TabsContent value="Upload" className="m-0 p-0">
-            <div
-              className="flex h-40 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-[2px] border-dashed border-input transition hover:border-muted-foreground"
-              onClick={() => audioInputRef?.current?.click()}
-            >
-              <Input
-                type="file"
-                className="hidden"
-                ref={audioInputRef}
-                onChange={(e) => uploadAudio(e)}
-                accept="audio/mp3"
-              />
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                {!isAudioUploading ? (
-                  <CloudUpload className="h-6 w-6" />
-                ) : (
-                  <LoadingSpinner className="h-6 w-6" />
-                )}
+            <>
+              <div
+                className="flex h-40 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-[2px] border-dashed border-input transition hover:border-muted-foreground"
+                onClick={() => audioInputRef?.current?.click()}
+              >
+                <Input
+                  type="file"
+                  className="hidden"
+                  ref={audioInputRef}
+                  onChange={(e) => uploadAudio(e)}
+                  accept="audio/mp3"
+                />
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  {!isAudioUploading ? (
+                    <CloudUpload className="h-6 w-6" />
+                  ) : (
+                    <LoadingSpinner className="h-6 w-6" />
+                  )}
+                </div>
+                <div className="flex flex-col items-center gap-2 text-sm">
+                  <h2 className="text-primary">Click to upload</h2>
+                  <p className="text-muted-foreground">MP3</p>
+                </div>
               </div>
-              <div className="flex flex-col items-center gap-2 text-sm">
-                <h2 className="text-primary">Click to upload</h2>
-                <p className="text-muted-foreground">MP3</p>
-              </div>
-            </div>
+              {audioError && (
+                <p className="mt-2 text-sm text-destructive">{audioError}</p>
+              )}
+            </>
           </TabsContent>
           <TabsContent value="Generate" className="m-0 space-y-6 p-0">
             <div className="space-y-2">
               <Label>AI Voice</Label>
-              <Select onValueChange={setVoice} value={voice ?? undefined}>
+              <Select
+                onValueChange={handleVoiceChange}
+                value={voice ?? undefined}
+              >
                 <SelectTrigger
                   className={`w-full max-w-[200px] ${voice === null ? "text-muted-foreground" : "text-foreground"}`}
                 >
@@ -247,6 +301,9 @@ export const GeneratePodcast = ({
                   />
                 )}
               </Select>
+              {audioVoiceError && (
+                <p className="text-sm text-destructive">{audioVoiceError}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -256,9 +313,12 @@ export const GeneratePodcast = ({
                 placeholder="Provide text to generate audio"
                 rows={5}
                 value={voicePrompt}
-                onChange={(e) => setVoicePrompt(e.target.value)}
+                onChange={handlePromptChange}
                 maxLength={1000}
               />
+              {audioPromptError && (
+                <p className="text-sm text-destructive">{audioPromptError}</p>
+              )}
             </div>
             <div className="w-full">
               <Button
