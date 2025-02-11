@@ -110,8 +110,7 @@ export const GeneratePodcast = ({
 
     try {
       const files = e.target.files;
-      if (!files || !!files.length) {
-        setAudioError("Please upload an audio file");
+      if (!files) {
         return;
       }
 
